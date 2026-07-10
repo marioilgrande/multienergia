@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Comparatore Energia Unificato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1f2545;
+    --muted:#6a6f8a;
+    --line:#e7e7f0;
+    --bg:#eef1f6;
+    --card:#ffffff;
+    --ok:#1f9e5a;
+    --ko:#d64550;
+    --acea:#0ABAB5;
+    --fastweb:#7c70b4;
+    --futuro:#9aa0b5;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    margin:0; background:var(--bg); color:var(--ink); line-height:1.5;
+  }
+  .container{max-width:900px; margin:0 auto; padding:18px}
+
+  header.app{
+    border-radius:16px; color:#fff; margin:8px 0 18px; padding:22px 24px;
+    background:linear-gradient(110deg,var(--acea),#3a7bd5 55%,var(--fastweb));
+    box-shadow:0 10px 30px rgba(31,37,69,.18);
+  }
+  header.app h1{margin:0; font-size:24px; font-weight:800; letter-spacing:.3px}
+  header.app p{margin:6px 0 0; font-size:14px; opacity:.95; font-weight:500}
+
+  .panel{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:20px; margin-bottom:18px; box-shadow:0 4px 14px rgba(31,37,69,.06);
+  }
+  .panel h2{margin:0 0 14px; font-size:18px; color:var(--ink)}
+  .section-label{font-size:12px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin:18px 0 8px}
+
+  .field{margin-bottom:14px}
+  label.lbl{display:block; font-weight:700; margin-bottom:6px; font-size:14px}
+  .hint{color:var(--muted); font-size:12px; margin-top:4px}
+  input[type="text"],input[type="number"],select{
+    width:100%; padding:11px 13px; border:1px solid #d3d6e6; border-radius:10px;
+    font-size:16px; font-family:inherit; background:#fff; outline:none; transition:.15s;
+  }
+  input:focus,select:focus{border-color:var(--acea); box-shadow:0 0 0 3px rgba(10,186,181,.15)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+
+  /* brand toggles */
+  .brand-row{display:flex; gap:10px; flex-wrap:wrap}
+  .brand-chip{
+    display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px;
+    border:2px solid var(--line); background:#fff; cursor:pointer; font-weight:700; font-size:14px;
+    user-select:none; transition:.15s;
+  }
+  .brand-chip .dot{width:12px; height:12px; border-radius:50%}
+  .brand-chip.active{color:#fff}
+  .brand-chip.disabled{opacity:.5; cursor:not-allowed}
+  .brand-chip input{display:none}
+
+  /* periodo mesi */
+  .periodo-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  @media (max-width:600px){ .periodo-grid{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr} }
+  .mese{
+    display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid #e2e2ee;
+    border-radius:10px; background:#fff; font-size:13px; font-weight:600; cursor:pointer; position:relative;
+  }
+  .mese input{appearance:none; -webkit-appearance:none; width:18px; height:18px; min-width:18px; border:2px solid var(--acea); border-radius:50%; position:relative; margin:0}
+  .mese input:checked{background:var(--acea)}
+  .mese input:checked::after{content:""; position:absolute; inset:3px; background:#fff; border-radius:50%}
+  .mese[data-tip]:hover::after{
+    content:attr(data-tip); white-space:pre; position:absolute; bottom:calc(100% + 8px); left:50%;
+    transform:translateX(-50%); background:#2c3350; color:#fff; padding:7px 11px; border-radius:8px;
+    font-size:11px; font-weight:600; z-index:50; box-shadow:0 6px 16px rgba(0,0,0,.25); pointer-events:none;
+  }
+
+  /* toggle switch */
+  .toggle{display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; padding:12px 14px; background:#f6f7fb; border:1px solid var(--line); border-radius:10px; font-weight:700; font-size:14px}
+  .toggle input{position:absolute; opacity:0; width:0; height:0}
+  .track{width:44px; height:24px; background:#ccd; border-radius:999px; position:relative; transition:.2s; flex-shrink:0}
+  .thumb{position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .toggle input:checked ~ .track{background:var(--acea)}
+  .toggle input:checked ~ .track .thumb{transform:translateX(20px)}
+
+  .btn{
+    width:100%; padding:14px; border:none; border-radius:12px; font-size:17px; font-weight:800;
+    color:#fff; cursor:pointer; font-family:inherit; background:linear-gradient(100deg,var(--acea),var(--fastweb));
+    box-shadow:0 6px 18px rgba(31,37,69,.18); transition:transform .1s;
+  }
+  .btn:active{transform:translateY(1px)}
+
+  .tag-luce{display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:5px; background:#fff3e0; color:#e65100; margin-left:6px}
+  .tag-gas{display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:5px; background:#e3f2fd; color:#0277bd; margin-left:6px}
+
+  /* RESULTS */
+  #results{display:none}
+  .group-head{
+    display:flex; align-items:center; gap:10px; margin:6px 0 14px; font-size:18px; font-weight:800;
+  }
+  .group-head .ic{width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px}
+
+  .offer{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 16px 14px;
+    margin-bottom:14px; box-shadow:0 3px 12px rgba(31,37,69,.06); position:relative; border-left:5px solid #ccc;
+  }
+  .offer.winner{box-shadow:0 8px 24px rgba(31,158,90,.22)}
+  .ribbon{
+    display:inline-block; padding:5px 12px; border-radius:999px; font-size:11px; font-weight:800;
+    letter-spacing:.5px; text-transform:uppercase; color:#fff; margin-bottom:10px;
+    background:linear-gradient(90deg,#1f9e5a,#15824a);
+  }
+  .offer-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap}
+  .offer-top h3{margin:0; font-size:17px}
+  .offer-pills{display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+  .serv-pill{font-size:11px; font-weight:800; padding:4px 10px; border-radius:999px; letter-spacing:.3px; white-space:nowrap}
+  .serv-luce{background:#fff3e0; color:#e65100}
+  .serv-gas{background:#e3f2fd; color:#0277bd}
+  .brand-pill{font-size:11px; font-weight:800; padding:4px 10px; border-radius:999px; color:#fff; letter-spacing:.3px}
+  .badges{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 4px}
+  .badge{font-size:10px; font-weight:800; padding:4px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:.4px}
+  .b-ind{background:#e3f2fd; color:#0a73c4}
+  .b-fix{background:#fff3e0; color:#e65100}
+  .b-fasce{background:#ede7f6; color:#5e35b1}
+  .b-base{background:#f1f3f8; color:#5a607a}
+  .boll-verde{background:#e6f4ea; color:#2e7d32}
+  .boll-giallo{background:#fff8e1; color:#a56b00}
+  .boll-rosso{background:#fdecea; color:#c62828}
+  .boll-nd{background:#eee; color:#777}
+  .periodo-ref{font-size:12px; color:var(--muted); margin:6px 0 12px}
+
+  .confronto{display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:stretch; margin-bottom:12px}
+  .pbox{padding:12px 10px; border-radius:10px; text-align:center}
+  .p-att{background:#fdecea; border:1px solid #f5b7b1}
+  .p-new{background:#e8f5e9; border:1px solid #a5d6a7}
+  .p-lbl{font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:#555}
+  .p-lbl small{display:block; font-weight:500; text-transform:none; letter-spacing:0; color:#888; font-size:10px; margin-top:2px}
+  .p-imp{font-size:24px; font-weight:800; margin-top:5px; line-height:1.1}
+  .p-att .p-imp{color:#c62828}
+  .p-new .p-imp{color:#2e7d32}
+  .vs{display:flex; align-items:center; justify-content:center; font-weight:800; color:#aab; font-size:12px}
+  @media (max-width:540px){ .confronto{grid-template-columns:1fr} }
+
+  .saving{padding:11px 14px; border-radius:10px; text-align:center; font-weight:800; font-size:15px; margin-bottom:10px}
+  .saving.ok{background:var(--ok); color:#fff}
+  .saving.ko{background:var(--ko); color:#fff}
+
+  details.det{background:#f7f8fb; border-radius:9px; padding:10px 13px; margin-bottom:12px; font-size:13px}
+  details.det summary{cursor:pointer; font-weight:700; color:#444}
+  details.det[open] summary{margin-bottom:8px}
+  .det-row{display:flex; justify-content:space-between; gap:10px; padding:3px 0; border-bottom:1px dashed #e3e3ee}
+  .det-row:last-child{border-bottom:none}
+  .det-row.tot{font-weight:800; border-top:1px solid #ccd; border-bottom:none; margin-top:4px; padding-top:6px}
+  .det-note{font-size:11px; color:var(--muted); margin-top:8px; line-height:1.5}
+
+  .actions{display:flex; gap:8px; flex-wrap:wrap}
+  .actions button{flex:1; min-width:140px; padding:11px; border:none; border-radius:10px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; font-family:inherit}
+  .btn-pdf{background:#5a6072}
+  .btn-wa{background:#25D366}
+
+  .empty{padding:16px; background:#fff8e1; border:1px solid #ffd54f; border-radius:10px; color:#7a5c00; font-size:14px; font-weight:600}
+  .disclaimer{margin-top:8px; font-size:12px; color:#a33; font-weight:700}
+  .info-diversi{background:#fff8e1; border-left:5px solid #ff9800; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:#5d4037}
+  .info-diversi b{color:#e65100}
+  .info-fwgas{background:#f3f0fb; border-left:5px solid var(--fastweb); border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:#3c356e; line-height:1.5}
+  .info-fwgas.gas-esclusa{background:#fff3e0; border-left-color:#e65100; color:#7a4a10}
+  .b-req{background:#f3f0fb; color:#5e35b1}
+
+  /* pulsante "Tutte le altre offerte" */
+  .btn-altre{width:100%; display:flex; align-items:center; gap:10px; margin:20px 0 8px; padding:13px 15px; border:2px dashed #b9bed0; border-radius:12px; cursor:pointer; font-family:inherit; font-size:16px; font-weight:800; color:#3a4063; background:#f4f6fb; transition:.15s}
+  .btn-altre:hover{background:#e9edf6; border-color:#8b93b0}
+  .btn-altre .ic{width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; background:#5a607a; flex-shrink:0}
+  .btn-altre .btn-altre-txt{flex:1; text-align:left}
+  .btn-altre .chev{font-size:14px; color:#5a607a; transition:transform .2s}
+  .btn-altre.open .chev{transform:rotate(180deg)}
+  .btn-altre.open{background:#eef4ff; border-style:solid; border-color:#3a7bd5}
+
+  /* top actions */
+  .top-actions{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .top-actions button{flex:1; min-width:160px; padding:11px; border:none; border-radius:10px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; font-family:inherit}
+  .btn-guida{background:#3a7bd5}
+  .btn-offerte{background:linear-gradient(90deg,#ff9800,#ff6f00)}
+  .btn-riep{background:var(--fastweb)}
+
+  /* sub-header in dettaglio */
+  .det-sub{font-weight:800; font-size:11px; letter-spacing:.5px; text-transform:uppercase; color:#5e35b1; margin:8px 0 3px; border-bottom:1px solid #e3e3ee; padding-bottom:2px}
+
+  /* FLAT tier navigator */
+  .flat-nav{display:grid; grid-template-columns:48px 1fr 48px; gap:8px; align-items:center; margin-bottom:12px}
+  .flat-nav button{border:none; border-radius:10px; background:var(--fastweb); color:#fff; font-size:22px; font-weight:800; cursor:pointer; padding:10px 0; font-family:inherit}
+  .flat-nav button:disabled{opacity:.3; cursor:not-allowed}
+  .flat-nav-mid{text-align:center; font-weight:700; font-size:13px; color:#5e35b1}
+  .flat-nav-mid strong{font-size:16px}
+  .fascia-chips{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:0 0 12px}
+  .fascia-chip{padding:6px 12px; border-radius:999px; border:2px solid var(--fastweb); background:#fff; color:var(--fastweb); font-weight:800; font-size:12px; cursor:pointer; font-family:inherit}
+  .fascia-chip.active{background:var(--fastweb); color:#fff}
+  .fascia-chip.best{box-shadow:0 0 0 2px #f7bd2b}
+  .annual-box{border-radius:12px; padding:14px 16px; text-align:center; margin-bottom:12px; border:2px solid}
+  .annual-box.ok{background:#eafaf0; border-color:#1f9e5a}
+  .annual-box.ko{background:#fdecec; border-color:#d64550}
+  .annual-box.neutral{background:#fff8e1; border-color:#ffb300}
+  .annual-lbl{font-size:11px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:#5a607a}
+  .annual-val{font-size:30px; font-weight:900; line-height:1.1; margin:5px 0}
+  .annual-box.ok .annual-val{color:#1f9e5a}
+  .annual-box.ko .annual-val{color:#d64550}
+  .annual-box.neutral .annual-val{color:#e65100; font-size:24px}
+  .annual-sub{font-size:12px; color:#6a6f8a}
+  .annual-note{background:#eef4ff; border-left:4px solid #3a7bd5; border-radius:8px; padding:10px 12px; font-size:12.5px; color:#23304d; margin-bottom:12px; line-height:1.5}
+
+  /* riepilogo Fastweb */
+  .riep-head{border-radius:12px; padding:12px 16px; color:#fff; font-weight:800; letter-spacing:.3px; background:linear-gradient(90deg,var(--fastweb),#5e35b1); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px}
+  .riep-toggles{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{padding:6px 12px; border-radius:999px; border:2px solid #fff; font-weight:800; color:#fff; background:transparent; cursor:pointer; font-size:13px; font-family:inherit}
+  .chip.active{background:#fff; color:var(--fastweb)}
+  .tier-cards{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px}
+  @media (max-width:900px){ .tier-cards{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:520px){ .tier-cards{grid-template-columns:1fr} }
+  .tier-card{border-radius:16px; padding:14px; color:#2b235a; background:linear-gradient(135deg,#f7bd2b,#e4e019); box-shadow:0 8px 20px rgba(124,112,180,.18); text-align:left}
+  .tier-card .pill{display:inline-block; padding:5px 12px; border-radius:999px; background:#9b91d6; color:#fff; font-weight:800; font-size:12px}
+  .tier-card .old{color:#6b5fa8; text-decoration:line-through; font-weight:800; font-size:16px; display:block; margin:8px 0 0}
+  .tier-card .big{font-size:34px; font-weight:900; line-height:1.1}
+  .tier-card .sub{font-weight:800; margin:0 0 6px; font-size:13px}
+  .tier-card .dsc{font-size:12px; font-weight:700; line-height:1.35; margin:6px 0 0}
+  .riep-block{background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; margin-top:10px}
+  .riep-block .t{font-weight:800; color:#5e35b1; margin:6px 0 4px; font-size:14px}
+  .riep-block .ln{font-size:13px; margin:2px 0}
+  .riep-block .hint{font-size:11px; color:var(--muted); margin:4px 0 8px}
+  .riep-block .div{height:1px; background:#eee; margin:8px 0}
+
+  /* modali */
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:16px; z-index:9999}
+  .modal-overlay.open{display:flex}
+  .modal{width:min(900px,100%); max-height:calc(100vh - 32px); background:#fff; border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,.25); overflow:hidden; display:flex; flex-direction:column}
+  .modal-header{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid #e6e6e6; background:#f7f7f7; flex-shrink:0}
+  .modal-header h3{margin:0; font-size:15px}
+  .modal-close{border:none; background:#3a7bd5; color:#fff; padding:8px 12px; border-radius:6px; font-weight:700; cursor:pointer; font-family:inherit}
+  .modal-body{padding:14px; display:flex; flex-direction:column; gap:12px; flex:1; min-height:0; overflow-y:auto}
+  .modal-body img{display:block; margin:0 auto; max-width:100%; max-height:calc(100vh - 200px); width:auto; border:1px solid #ddd; border-radius:10px; background:#000}
+  .slideshow{position:relative; width:100%; display:flex; align-items:center; justify-content:center}
+  .modal-body img.slide{display:none}
+  .modal-body img.slide.active{display:block}
+  .slide-nav{position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; font-size:26px; border:none; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center}
+  .slide-prev{left:8px} .slide-next{right:8px}
+  .slide-info{display:flex; flex-direction:column; align-items:center; gap:6px}
+  .slide-dots{display:flex; gap:8px}
+  .dot{width:10px; height:10px; border-radius:50%; background:#ccc; cursor:pointer}
+  .dot.active{background:var(--fastweb)}
+  .btn-download{display:inline-block; text-align:center; text-decoration:none; padding:11px; background:var(--fastweb); color:#fff; font-weight:700; border-radius:8px}
+  .spesa-msg{font-size:14px; line-height:1.6; color:#23304d}
+  .spesa-msg strong{color:#1f2545}
+  .spesa-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+  .spesa-actions button{flex:1; min-width:180px; padding:13px; border:none; border-radius:10px; font-weight:800; font-size:14px; cursor:pointer; font-family:inherit}
+  .spesa-actions .primary{background:linear-gradient(100deg,var(--acea),var(--fastweb)); color:#fff}
+  .spesa-actions .ghost{background:#eef0f6; color:#444}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header class="app">
+      <h1>Comparatore Energia Unificato</h1>
+      <p>ACEA · Fastweb Energia — confronto multi-brand della miglior proposta di risparmio</p>
+    </header>
+
+    <div class="panel">
+      <h2>Brand da confrontare</h2>
+      <div class="brand-row" id="brandRow"></div>
+      <p class="hint">Attiva i brand da includere nel confronto. I segnaposto "Prossimamente" sono pronti per i futuri brand.</p>
+    </div>
+
+    <form id="form" class="panel" autocomplete="off">
+      <h2>Dati cliente e bolletta</h2>
+
+      <div class="top-actions">
+        <button type="button" class="btn-guida" onclick="apriModale('guidaOverlay')">Quali dati inserire?</button>
+        <button type="button" class="btn-riep" onclick="apriRiepilogo()">Riepilogo offerte Fastweb</button>
+        <button type="button" class="btn-offerte" onclick="apriOfferte()">Offerte in corso</button>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="nome">Nome e Cognome Cliente</label>
+        <input type="text" id="nome" required>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="tipoCliente">Tipo Cliente</label>
+          <select id="tipoCliente">
+            <option value="domestico">Domestico</option>
+            <option value="business">Business (P.IVA)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="potenza">Potenza contatore <span class="hint">(per offerte a fasce)</span></label>
+          <select id="potenza">
+            <option value="3">3 kW</option>
+            <option value="4.5">4,5 kW</option>
+            <option value="6">6 kW</option>
+            <option value="altro">Oltre 6 kW</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="toggle" for="convergenza">
+          <input type="checkbox" id="convergenza">
+          <span class="track"><span class="thumb"></span></span>
+          <span>Cliente Fastweb / Vodafone (sconto convergenza)</span>
+        </label>
+      </div>
+
+      <!-- PERIODO -->
+      <div class="field">
+        <label class="toggle" for="periodiDiversi">
+          <input type="checkbox" id="periodiDiversi" onchange="togglePeriodi()">
+          <span class="track"><span class="thumb"></span></span>
+          <span>Periodi di fatturazione diversi per Luce e Gas</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label class="lbl" id="periodoLuceLabel">Periodo di fatturazione</label>
+        <div class="periodo-grid" id="periodoLuce"></div>
+      </div>
+
+      <div class="field" id="periodoGasWrap" style="display:none">
+        <label class="lbl">Periodo di fatturazione <span class="tag-gas">GAS</span></label>
+        <div class="periodo-grid" id="periodoGas"></div>
+      </div>
+
+      <!-- LUCE -->
+      <div class="section-label">Dati Luce</div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="kwh">kWh fatturati nel periodo</label>
+          <input type="number" id="kwh" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label class="lbl" for="consumoAnnuo">Consumo annuo Luce (kWh) <span class="hint">(fasce)</span></label>
+          <input type="number" id="consumoAnnuo" min="0" step="1">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="quotaConsumiLuce">Quota consumi materia energia (€)</label>
+          <input type="number" id="quotaConsumiLuce" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label class="lbl" for="quotaFissaLuce">Quota fissa materia energia (€)</label>
+          <input type="number" id="quotaFissaLuce" min="0" step="0.01">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="totaleBolletta">Totale bolletta Luce del periodo (€) <span class="hint">(fasce)</span></label>
+          <input type="number" id="totaleBolletta" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label class="lbl" for="spesaAnnua">Spesa annua Luce (€) <span class="hint">(facoltativo, fasce)</span></label>
+          <input type="number" id="spesaAnnua" min="0" step="0.01">
+        </div>
+      </div>
+
+      <!-- GAS -->
+      <div class="section-label">Dati Gas</div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="smc">Smc fatturati nel periodo</label>
+          <input type="number" id="smc" min="0" step="0.01">
+        </div>
+        <div class="field"></div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="quotaConsumiGas">Quota consumi materia gas (€)</label>
+          <input type="number" id="quotaConsumiGas" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label class="lbl" for="quotaFissaGas">Quota fissa materia gas (€)</label>
+          <input type="number" id="quotaFissaGas" min="0" step="0.01">
+        </div>
+      </div>
+
+      <!-- FILTRI -->
+      <div class="section-label">Filtri offerte</div>
+      <div class="grid2">
+        <div class="field">
+          <label class="lbl" for="tipoOffertaFiltro">Tipo di offerta</label>
+          <select id="tipoOffertaFiltro">
+            <option value="tutte">Tutte (fisse + variabili)</option>
+            <option value="fissa">Solo prezzo fisso</option>
+            <option value="variabile">Solo variabile (indicizzata)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="bollinoFiltro">Bollino Alperia <span class="hint">(margine interno)</span></label>
+          <select id="bollinoFiltro">
+            <option value="tutti">Tutti</option>
+            <option value="verde">🟢 Normale</option>
+            <option value="giallo">🟡 Basso</option>
+            <option value="rosso">🔴 Bassissimo</option>
+            <option value="nd">⚪ Non specificato</option>
+          </select>
+        </div>
+      </div>
+      <p class="hint">Il <strong>bollino</strong> è un indicatore di margine interno, applicato solo alle offerte <strong>Alperia</strong> e mai mostrato al cliente (né in PDF né su WhatsApp). Il filtro bollino agisce solo sulle offerte Alperia.</p>
+
+      <button type="submit" class="btn">Confronta tutti i brand</button>
+      <p class="disclaimer">Calcolo indicativo. Le offerte a prezzo fisso/indicizzato confrontano la sola materia energia/gas; le offerte a fasce (FLAT) confrontano il totale bolletta. IVA, accise, oneri di sistema, trasporto e gestione contatore possono non essere inclusi.</p>
+    </form>
+
+    <div id="results" class="panel">
+      <h2>Risultati del confronto</h2>
+      <div id="resultsBody"></div>
+    </div>
+
+  </div>
+
+  <!-- MODALE: invito spesa annua (FLAT) -->
+  <div id="spesaAnnuaModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="width:min(560px,100%)">
+      <div class="modal-header">
+        <h3>Per un'analisi più precisa</h3>
+        <button type="button" class="modal-close" onclick="chiudiModale('spesaAnnuaModal')">Annulla</button>
+      </div>
+      <div class="modal-body">
+        <div class="spesa-msg">
+          <p style="margin:0 0 10px">Non hai indicato la <strong>spesa annua</strong> della fornitura luce. Per le offerte a <strong>fasce (FLAT)</strong> il confronto realmente affidabile è quello sull'<strong>intero anno</strong>: con questo dato possiamo dire al cliente con precisione quanto risparmia in 12 mesi.</p>
+          <p style="margin:0 0 10px">Ti consigliamo di recuperarlo dalla <strong>bolletta</strong> o dall'<strong>area clienti</strong> del fornitore attuale (voce “spesa annua” oppure la somma delle ultime bollette).</p>
+          <p style="margin:0; color:#6a6f8a">Se al momento non è disponibile, puoi comunque proseguire: l'analisi sul periodo resta valida, ma il risparmio annuale sarà solo indicativo.</p>
+        </div>
+        <div class="spesa-actions">
+          <button type="button" class="primary" onclick="spesaAnnuaInserisci()">Inserisco la spesa annua</button>
+          <button type="button" class="ghost" onclick="spesaAnnuaProcedi()">Non disponibile, procedi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE: Riepilogo offerte Fastweb -->
+  <div id="riepOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3>RIEPILOGO OFFERTE FASTWEB ENERGIA</h3>
+        <button type="button" class="modal-close" onclick="chiudiModale('riepOverlay')">Chiudi</button>
+      </div>
+      <div class="modal-body" id="riepBody"></div>
+    </div>
+  </div>
+
+  <!-- MODALE: Quali dati inserire -->
+  <div id="guidaOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3>QUALI DATI INSERIRE — guida alla lettura della bolletta</h3>
+        <button type="button" class="modal-close" onclick="chiudiModale('guidaOverlay')">Chiudi</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint" style="margin:0">Per le offerte a <strong>prezzo fisso/indicizzato</strong> inserisci kWh/Smc fatturati e le quote consumi+fissa. Per le offerte a <strong>fasce (FLAT)</strong> servono anche consumo annuo, potenza e totale bolletta del periodo.</p>
+        <img src="assets/guida-bolletta.jpg" alt="Guida lettura bolletta" />
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE: Offerte in corso -->
+  <div id="offerteOverlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h3>OFFERTE IN CORSO</h3>
+        <button type="button" class="modal-close" onclick="chiudiModale('offerteOverlay')">Chiudi</button>
+      </div>
+      <div class="modal-body">
+        <div class="slideshow">
+          <img class="slide active" src="assets/offerte-in-corso.jpeg" alt="Offerte Luce e Gas in corso" />
+          <img class="slide" src="assets/acea-fix-dettaglio.png" alt="ACEA FIX - dettaglio" />
+          <button type="button" class="slide-nav slide-prev" onclick="cambiaSlide(-1)">‹</button>
+          <button type="button" class="slide-nav slide-next" onclick="cambiaSlide(1)">›</button>
+        </div>
+        <div class="slide-info">
+          <div class="slide-dots">
+            <span class="dot active" onclick="vaiSlide(0)"></span>
+            <span class="dot" onclick="vaiSlide(1)"></span>
+          </div>
+          <div class="hint"><span id="slideTitle">Offerte Luce e Gas</span> · <span id="slideCounter">1 / 2</span></div>
+        </div>
+        <a id="slideDownload" href="assets/offerte-in-corso.jpeg" download="offerte-energia.jpeg" class="btn-download">⬇ Scarica questa immagine</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========================================================================
+   COMPARATORE ENERGIA UNIFICATO
+   Architettura a "brand plugin": ogni brand espone compute(input) e
+   restituisce un array di offerte NORMALIZZATE. Il motore raccoglie tutte
+   le offerte attive, le raggruppa per servizio (Luce/Gas), le ordina per
+   risparmio e evidenzia il vincitore.
+   Per aggiungere un brand: aggiungi un oggetto a BRANDS con compute().
+   ========================================================================= */
+
+/* ---- DATI DI MERCATO CONDIVISI (indici nazionali PUN/PSV per mese) ---- */
+const MONTHS = [
+  { key:"dic-25", label:"Dicembre 2025", pun:0.11500, psv:0.32800 },
+  { key:"gen-26", label:"Gennaio 2026",  pun:0.13300, psv:0.40390 },
+  { key:"feb-26", label:"Febbraio 2026", pun:0.11441, psv:0.37680 },
+  { key:"mar-26", label:"Marzo 2026",    pun:0.14340, psv:0.55770 },
+  { key:"apr-26", label:"Aprile 2026",   pun:0.11950, psv:0.49312 },
+  { key:"mag-26", label:"Maggio 2026",   pun:0.11930, psv:0.50240 },
+];
+const monthByKey = Object.fromEntries(MONTHS.map(m=>[m.key,m]));
+
+function avg(keys, prop){
+  if(!keys.length) return 0;
+  let s=0,c=0;
+  keys.forEach(k=>{ const m=monthByKey[k]; if(m){ s+=m[prop]; c++; } });
+  return c ? s/c : 0;
+}
+function monthLabels(keys){ return keys.map(k=>monthByKey[k]?.label || k).join(", "); }
+
+/* ---- UTILS ---- */
+function money(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
+
+/* =========================================================================
+   FORMATO OFFERTA NORMALIZZATA
+   {
+     brandId, brandLabel, brandColor,
+     servizio: "luce" | "gas",
+     nome, tipoBadge:{text,cls}, base:"materia"|"totale", baseLabel,
+     periodo, nMesi,
+     costoAttuale, costoOfferta, risparmio (= attuale - offerta),
+     dettaglio:[{label,value,tot?}], note, validita
+   }
+   ========================================================================= */
+
+/* ===================== BRAND: ACEA ===================== */
+const ACEA = {
+  id:"acea", label:"ACEA Energia", color:"#0ABAB5",
+  // disp luce inclusa nel prezzo materia
+  DISP_LUCE:0.02,
+  offerte:{
+    domestico:{
+      luce:[
+        { nome:"ACEA SPRINT LUCE", tipo:"ind", spread:0.0145, canone:10 },
+        { nome:"ACEA FLEX LUCE",   tipo:"ind", spread:0.03,   canone:9, marginalita:true },
+        { nome:"ACEA FIX LUCE",    tipo:"fix", raw:0.099,      canone:9.25 },
+      ],
+      gas:[
+        { nome:"ACEA SPRINT GAS", tipo:"ind", spread:0.075, canone:10 },
+        { nome:"ACEA FLEX GAS",   tipo:"ind", spread:0.148, canone:9, marginalita:true },
+        { nome:"ACEA FIX GAS",    tipo:"fix", raw:0.40,     canone:9.25 },
+      ],
+    },
+    business:{
+      luce:[ { nome:"ACEA SPRINT BUSINESS LUCE", tipo:"ind", spread:0.016, canone:13 } ],
+      gas:[  { nome:"ACEA SPRINT BUSINESS GAS",  tipo:"ind", spread:0.081, canone:13 } ],
+    }
+  },
+  compute(input){
+    const out=[];
+    const set = this.offerte[input.tipoCliente] || this.offerte.domestico;
+    // LUCE
+    if(input.luce.kwh>0 && input.luce.mesi.length){
+      const pun = avg(input.luce.mesi,"pun");
+      const nMesi = input.luce.mesi.length;
+      (set.luce||[]).forEach(o=>{
+        const prezzoKwh = o.tipo==="fix" ? (o.raw + this.DISP_LUCE) : (pun + o.spread + this.DISP_LUCE);
+        const energia = input.luce.kwh * prezzoKwh;
+        const fisso = o.canone * nMesi;
+        const tot = energia + fisso;
+        out.push(this._card(o,"luce",input.luce,nMesi,energia,fisso,tot,
+          o.tipo==="fix"
+            ? `Prezzo bloccato ${money(o.raw)} €/kWh + dispacciamento ${money(this.DISP_LUCE)} €/kWh`
+            : `PUN medio ${pun.toFixed(4)} + spread ${o.spread.toFixed(4)} + disp. ${this.DISP_LUCE.toFixed(4)} €/kWh`));
+      });
+    }
+    // GAS
+    if(input.gas.smc>0 && input.gas.mesi.length){
+      const psv = avg(input.gas.mesi,"psv");
+      const nMesi = input.gas.mesi.length;
+      (set.gas||[]).forEach(o=>{
+        const prezzoSmc = o.tipo==="fix" ? o.raw : (psv + o.spread);
+        const energia = input.gas.smc * prezzoSmc;
+        const fisso = o.canone * nMesi;
+        const tot = energia + fisso;
+        out.push(this._card(o,"gas",input.gas,nMesi,energia,fisso,tot,
+          o.tipo==="fix"
+            ? `Prezzo bloccato ${money(o.raw)} €/Smc`
+            : `PSV medio ${psv.toFixed(4)} + spread ${o.spread.toFixed(4)} €/Smc`));
+      });
+    }
+    return out;
+  },
+  _card(o,servizio,svc,nMesi,energia,fisso,tot,note){
+    const tipoBadge = o.tipo==="fix" ? {text:"Prezzo Fisso",cls:"b-fix"}
+      : {text: servizio==="gas" ? "Indicizzata PSV":"Indicizzata PUN", cls:"b-ind"};
+    return {
+      brandId:this.id, brandLabel:this.label, brandColor:this.color,
+      servizio, nome:o.nome, tipoBadge, base:"materia", baseLabel:"spesa materia energia",
+      periodo:monthLabels(svc.mesi), nMesi,
+      costoAttuale:svc.attuale, costoOfferta:tot, risparmio:svc.attuale-tot,
+      marginalita:!!o.marginalita,
+      dettaglio:[
+        {label: servizio==="gas"?"Spesa gas naturale":"Spesa materia energia", value:"€ "+money(energia)},
+        {label:`Quota fissa € ${money(o.canone)}/mese × ${nMesi}`, value:"€ "+money(fisso)},
+        {label:"Totale offerta", value:"€ "+money(tot), tot:true},
+      ],
+      note, validita:null,
+    };
+  }
+};
+
+/* ===================== BRAND: FASTWEB ===================== */
+const FASTWEB = {
+  id:"fastweb", label:"Fastweb Energia", color:"#7c70b4",
+  DISP:0.011,
+  // luce a consumo
+  DOM_FIX_RAW:0.180, DOM_FLEX_SPREAD:0.026, DOM_CANONE_LISTINO:13, DOM_CANONE_CONV:8,
+  BIZ_FIX_RAW:0.160, BIZ_FLEX_SPREAD:0.030, BIZ_CANONE_LISTINO:20, BIZ_CANONE_CONV:10,
+  // gas
+  GAS_DOM_SPREAD:0.10, GAS_BIZ_SPREAD:0.13,
+  GAS_DOM_CANONE_LISTINO:15, GAS_DOM_CANONE_CONV:4,
+  GAS_BIZ_CANONE_LISTINO:20, GAS_BIZ_CANONE_CONV:10,
+  // FLAT a fasce (solo domestico)
+  TIER_NAMES:["START","LIGHT","PRO","MAXI","ULTRA"],
+  THRESHOLDS:[800,1500,2500,3500,4500],
+  BASE_LISTINO_3KW:[41,56,76,91,106],
+  CONVERGENCE_DISCOUNT:11, POWER_STEP_PRICE:5,
+  TIER_EXTRA:[0.30,0.27,0.21,0.20,0.13],
+  ULTRA_TOLERANCE:500,
+
+  compute(input){
+    const out=[];
+    const biz = input.tipoCliente==="business";
+    const conv = input.convergenza;
+
+    // ---- LUCE A CONSUMO (FIX / FLEX) ----
+    if(input.luce.kwh>0 && input.luce.mesi.length){
+      const pun = avg(input.luce.mesi,"pun");
+      const nMesi = input.luce.mesi.length;
+      const canone = biz ? (conv?this.BIZ_CANONE_CONV:this.BIZ_CANONE_LISTINO)
+                         : (conv?this.DOM_CANONE_CONV:this.DOM_CANONE_LISTINO);
+      const fixRaw  = biz ? this.BIZ_FIX_RAW : this.DOM_FIX_RAW;
+      const flexSpr = biz ? this.BIZ_FLEX_SPREAD : this.DOM_FLEX_SPREAD;
+      const prefix = biz ? "FASTWEB LUCE BUSINESS " : "FASTWEB LUCE ";
+      const validitaLuce = biz ? "36 mesi (anche Multisito)" : "12 mesi";
+
+      // FIX
+      [["FIX", fixRaw+this.DISP, "fix"],
+       ["FLEX", pun+flexSpr+this.DISP, "ind"]].forEach(([t,pk,kind])=>{
+        const energia = input.luce.kwh*pk;
+        const fisso = canone*nMesi;
+        const tot = energia+fisso;
+        out.push({
+          brandId:this.id, brandLabel:this.label, brandColor:this.color,
+          servizio:"luce", nome:prefix+t,
+          tipoBadge: kind==="fix"?{text:"Prezzo Fisso",cls:"b-fix"}:{text:"Indicizzata PUN",cls:"b-ind"},
+          base:"materia", baseLabel:"spesa materia energia",
+          periodo:monthLabels(input.luce.mesi), nMesi,
+          costoAttuale:input.luce.attuale, costoOfferta:tot, risparmio:input.luce.attuale-tot,
+          dettaglio:[
+            {label:"Spesa materia energia", value:"€ "+money(energia)},
+            {label:`Quota fissa € ${money(canone)}/mese × ${nMesi}${conv?" (sconto convergenza)":""}`, value:"€ "+money(fisso)},
+            {label:"Totale offerta", value:"€ "+money(tot), tot:true},
+          ],
+          note: kind==="fix"
+            ? `Prezzo bloccato ${money(fixRaw)} + disp. ${money(this.DISP)} = ${money(pk)} €/kWh`
+            : `PUN medio ${pun.toFixed(4)} + spread ${money(flexSpr)} + disp. ${money(this.DISP)} €/kWh`,
+          validita:validitaLuce,
+        });
+      });
+
+      // ---- FLAT A FASCE (solo domestico, potenza <=6kW, consumo <=5000) ----
+      const potOk = input.potenza!=="altro";
+      const consOk = input.consumoAnnuo>0 && input.consumoAnnuo<=5000;
+      if(!biz && potOk && consOk){
+        const flat = this._bestFlat(input, conv);
+        if(flat) out.push(flat);
+      }
+    }
+
+    // ---- GAS FLEX (DUAL / upsell) ----
+    // Regola commerciale Fastweb: la gas è attivabile SOLO insieme alla luce Fastweb
+    // (DUAL o upsell su cliente Fastweb Luce). Quindi la mostriamo solo se la luce è in analisi.
+    const haFastwebLuce = input.luce.kwh>0 && input.luce.mesi.length>0;
+    if(haFastwebLuce && input.gas.smc>0 && input.gas.mesi.length){
+      const psv = avg(input.gas.mesi,"psv");
+      const nMesi = input.gas.mesi.length;
+      const spread = biz ? this.GAS_BIZ_SPREAD : this.GAS_DOM_SPREAD;
+      const canone = biz ? (conv?this.GAS_BIZ_CANONE_CONV:this.GAS_BIZ_CANONE_LISTINO)
+                         : (conv?this.GAS_DOM_CANONE_CONV:this.GAS_DOM_CANONE_LISTINO);
+      const energia = input.gas.smc*(psv+spread);
+      const fisso = canone*nMesi;
+      const tot = energia+fisso;
+      out.push({
+        brandId:this.id, brandLabel:this.label, brandColor:this.color,
+        servizio:"gas", nome: biz?"FASTWEB GAS FLEX BUSINESS":"FASTWEB GAS FLEX",
+        tipoBadge:{text:"Indicizzata PSV",cls:"b-ind"},
+        base:"materia", baseLabel:"spesa materia gas",
+        periodo:monthLabels(input.gas.mesi), nMesi,
+        costoAttuale:input.gas.attuale, costoOfferta:tot, risparmio:input.gas.attuale-tot,
+        dettaglio:[
+          {label:"Spesa gas naturale", value:"€ "+money(energia)},
+          {label:`Commercializz. € ${money(canone)}/mese × ${nMesi}${conv?" (sconto convergenza)":""}`, value:"€ "+money(fisso)},
+          {label:"Totale offerta", value:"€ "+money(tot), tot:true},
+        ],
+        note:`PSV medio ${psv.toFixed(4)} + spread ${money(spread)} €/Smc · attivabile in DUAL o upsell su cliente Fastweb Luce`,
+        validita:"12 mesi",
+        requiresLuce:true,
+      });
+    }
+    return out;
+  },
+
+  _monthly(tierIdx, potenza, conv){
+    let inc = 0;
+    if(String(potenza)==="4.5") inc=this.POWER_STEP_PRICE;
+    else if(String(potenza)==="6") inc=this.POWER_STEP_PRICE*2;
+    const listino = this.BASE_LISTINO_3KW[tierIdx]+inc;
+    return conv ? listino-this.CONVERGENCE_DISCOUNT : listino;
+  },
+  _bestFlat(input, conv){
+    const tiers = [0,1,2,3,4].map(t=>{
+      const monthly = this._monthly(t, input.potenza, conv);
+      const listino = this._monthly(t, input.potenza, false);
+      const cliente = this._monthly(t, input.potenza, true);
+      const baseAnnual = monthly*12;
+      const threshold = this.THRESHOLDS[t];
+      const rate = this.TIER_EXTRA[t];
+      const extraKwh = Math.max(0, input.consumoAnnuo-threshold);
+      const extraAnnual = extraKwh*rate;
+      const marginKwh = Math.max(0, threshold-input.consumoAnnuo);
+      const refund = marginKwh*rate;
+      const totalAnnual = baseAnnual + extraAnnual - refund;
+      return {t, name:this.TIER_NAMES[t], monthly, listino, cliente, baseAnnual,
+              threshold, rate, extraKwh, extraAnnual, marginKwh, refund, totalAnnual};
+    });
+    const bestT = tiers.slice().sort((a,b)=>a.totalAnnual-b.totalAnnual)[0].t;
+
+    const o = {
+      brandId:this.id, brandLabel:this.label, brandColor:this.color,
+      servizio:"luce", tipoBadge:{text:"A Fasce / Canone",cls:"b-fasce"},
+      base:"totale", baseLabel:"totale bolletta",
+      periodo:monthLabels(input.luce.mesi), nMesi:input.luce.mesi.length,
+      costoAttuale:input.totaleBolletta, validita:"36 mesi",
+      flat:{
+        tiers, bestT, currentT:bestT, conv,
+        consumoAnnuo:input.consumoAnnuo, numMesi:input.luce.mesi.length,
+        totaleBolletta:input.totaleBolletta, spesaAnnua:input.spesaAnnua,
+        ULTRA_TOLERANCE:this.ULTRA_TOLERANCE,
+      },
+    };
+    applyFlatTier(o, bestT);
+    return o;
+  }
+};
+
+/* Calcola i campi visualizzati della FLAT per una specifica fascia (tier) */
+function applyFlatTier(o, t){
+  const f = o.flat;
+  f.currentT = t;
+  const tv = f.tiers.find(x=>x.t===t);
+  const best = f.tiers.find(x=>x.t===f.bestT);
+  const periodCost = tv.monthly * f.numMesi;
+
+  o.nome = "FASTWEB LUCE FLAT " + tv.name;
+  o.costoOfferta = periodCost;
+  o.risparmio = f.totaleBolletta - periodCost;
+
+  const d = [];
+  d.push({label:"Fascia visualizzata", value:tv.name});
+  d.push({label:`Costo mensile fascia${f.conv?" (cliente Fastweb/Vodafone)":""}`,
+          value:"€ "+money(tv.monthly)+"/mese" + (f.conv?` (listino € ${money(tv.listino)})`:` (cliente € ${money(tv.cliente)})`)});
+  d.push({label:"Soglia fascia", value:"fino a "+tv.threshold.toLocaleString("it-IT")+" kWh/anno"});
+  if(tv.t===4) d.push({label:"Tolleranza fascia ULTRA", value:"fino a "+(tv.threshold+f.ULTRA_TOLERANCE).toLocaleString("it-IT")+" kWh/anno"});
+  d.push({label:"Extra oltre soglia", value:"€ "+money(tv.rate)+"/kWh"});
+  d.push({label:"Restituzione consumi non utilizzati", value:"€ "+money(tv.rate)+"/kWh"});
+
+  d.push({label:"Analisi bolletta (periodo)", sub:true});
+  d.push({label:"Totale bolletta inserito", value:"€ "+money(f.totaleBolletta)});
+  d.push({label:`Spesa periodo (canone × ${f.numMesi})`, value:"€ "+money(periodCost), tot:true});
+
+  d.push({label:"Analisi annuale", sub:true});
+  d.push({label:"Consumo annuale inserito", value:f.consumoAnnuo.toLocaleString("it-IT")+" kWh"});
+  d.push({label:"Annuale fascia (base)", value:"€ "+money(tv.baseAnnual)});
+  if(tv.extraKwh>0) d.push({label:`Extra oltre soglia (${tv.extraKwh.toLocaleString("it-IT")} kWh × €${money(tv.rate)})`, value:"€ "+money(tv.extraAnnual)});
+  if(tv.marginKwh>0) d.push({label:`Rimborso sotto soglia (${tv.marginKwh.toLocaleString("it-IT")} kWh × €${money(tv.rate)})`, value:"- € "+money(tv.refund)});
+  d.push({label:"Totale annuale (canone + extra − rimborso)", value:"€ "+money(tv.totalAnnual), tot:true});
+
+  if(t===f.bestT){
+    const other = f.tiers.filter(x=>x.t!==t).sort((a,b)=>a.totalAnnual-b.totalAnnual)[0];
+    if(other) d.push({label:`Risparmio vs alternativa (${other.name})`, value:"€ "+money(other.totalAnnual - tv.totalAnnual)});
+  } else {
+    const diff = tv.totalAnnual - best.totalAnnual;
+    d.push({label:`Differenza vs fascia consigliata (${best.name})`, value:(diff>=0?"€ ":"- € ")+money(Math.abs(diff))});
+  }
+  if(f.spesaAnnua>0){
+    d.push({label:"Spesa annua dichiarata", value:"€ "+money(f.spesaAnnua)});
+    const da = f.spesaAnnua - tv.totalAnnual;
+    d.push({label: da>=0?"Totale risparmio annuo":"Spesa annua superiore", value:"€ "+money(Math.abs(da)), tot:true});
+  }
+
+  const periodDelta = f.totaleBolletta - periodCost;
+  const annualDelta = f.spesaAnnua>0 ? (f.spesaAnnua - tv.totalAnnual) : null;
+  o.flatAnnual = {
+    totalAnnual: tv.totalAnnual,
+    hasSpesa: f.spesaAnnua>0,
+    spesaAnnua: f.spesaAnnua,
+    delta: annualDelta,
+    periodDelta,
+  };
+
+  let noteAnnua = "";
+  if(f.spesaAnnua>0){
+    noteAnnua = annualDelta>=0
+      ? ` RISPARMIO ANNUO stimato: € ${money(annualDelta)} (spesa annua attuale € ${money(f.spesaAnnua)} contro € ${money(tv.totalAnnual)} con l'offerta).`
+      : ` Sull'anno l'offerta è più alta di € ${money(Math.abs(annualDelta))} (€ ${money(tv.totalAnnual)} contro € ${money(f.spesaAnnua)}).`;
+  } else {
+    noteAnnua = ` Costo annuo stimato con l'offerta: € ${money(tv.totalAnnual)}.`;
+  }
+  o.note = `Le offerte a fasce si valutano sull'INTERO ANNO. Sul periodo selezionato: ${periodDelta>=0?"risparmio di € "+money(periodDelta):"offerta più alta di € "+money(Math.abs(periodDelta))}.${noteAnnua} Validità 36 mesi.`;
+  o.dettaglio = d;
+}
+
+/* Navigazione libera tra TUTTE le fasce FLAT */
+function getAllowedFlatTargets(bestT, curT){
+  return { prev: curT>0?curT-1:null, next: curT<4?curT+1:null };
+}
+function _flatRender(id){
+  const o = LAST_OFFERS[id];
+  const host = document.getElementById("card_"+id);
+  if(o && host) host.outerHTML = renderCard(o);
+}
+function flatNav(id, delta){
+  const o = LAST_OFFERS[id]; if(!o || !o.flat) return;
+  const target = o.flat.currentT + delta;
+  if(target<0 || target>4) return;
+  applyFlatTier(o, target);
+  _flatRender(id);
+}
+function flatGoto(id, t){
+  const o = LAST_OFFERS[id]; if(!o || !o.flat) return;
+  applyFlatTier(o, t);
+  _flatRender(id);
+}
+function renderFlatNav(o){
+  const a = getAllowedFlatTargets(o.flat.bestT, o.flat.currentT);
+  const cur = o.flat.tiers.find(x=>x.t===o.flat.currentT);
+  const isBest = o.flat.currentT===o.flat.bestT;
+  const chips = o.flat.tiers.map(tv=>
+    `<button type="button" class="fascia-chip ${tv.t===o.flat.currentT?'active':''} ${tv.t===o.flat.bestT?'best':''}" onclick="flatGoto('${o.id}',${tv.t})">${tv.name}</button>`).join("");
+  return `<div class="flat-nav">
+    <button ${a.prev==null?'disabled':''} onclick="flatNav('${o.id}',-1)" aria-label="Fascia precedente">←</button>
+    <div class="flat-nav-mid">${isBest?'★ Fascia consigliata':'Fascia selezionata'} <strong>${cur.name}</strong></div>
+    <button ${a.next==null?'disabled':''} onclick="flatNav('${o.id}',1)" aria-label="Fascia successiva">→</button>
+  </div>
+  <div class="fascia-chips">${chips}</div>`;
+}
+
+/* Riquadro RISPARMIO ANNUO in evidenza per la FLAT (conta l'anno, non il periodo) */
+function renderFlatAnnual(o){
+  const fa = o.flatAnnual; if(!fa) return "";
+  let html = "";
+  if(fa.hasSpesa){
+    const ok = fa.delta>=0;
+    html += `<div class="annual-box ${ok?'ok':'ko'}">
+      <div class="annual-lbl">${ok?'★ Risparmio ANNUO stimato':'Maggior costo annuo stimato'}</div>
+      <div class="annual-val">€ ${money(Math.abs(fa.delta))}</div>
+      <div class="annual-sub">Spesa annua attuale € ${money(fa.spesaAnnua)} &nbsp;→&nbsp; con l'offerta € ${money(fa.totalAnnual)}/anno</div>
+    </div>`;
+  } else {
+    html += `<div class="annual-box neutral">
+      <div class="annual-lbl">Costo ANNUO stimato con l'offerta</div>
+      <div class="annual-val">€ ${money(fa.totalAnnual)}</div>
+      <div class="annual-sub">Inserisci la “Spesa annua Luce” nel form per calcolare il risparmio sull'anno</div>
+    </div>`;
+  }
+  if(fa.periodDelta < 0 && fa.hasSpesa && fa.delta > 0){
+    html += `<div class="annual-note">ℹ️ Nel periodo selezionato questa offerta a fasce risulta più alta di € ${money(Math.abs(fa.periodDelta))}, ma <strong>sull'anno è più conveniente</strong> (risparmio annuo € ${money(fa.delta)}). Per le offerte FLAT conta il totale annuale.</div>`;
+  } else if(fa.periodDelta < 0){
+    html += `<div class="annual-note">ℹ️ Le offerte a fasce vanno valutate sull'<strong>intero anno</strong>: nel singolo periodo possono risultare più alte, ma a fine anno spesso convengono.</div>`;
+  }
+  return html;
+}
+
+/* ===================== SEGNAPOSTO BRAND FUTURI ===================== */
+/* Per attivare un brand futuro: completa compute(input) e metti enabled:true.
+   Esempio scheletro:
+   const BRAND_X = {
+     id:"brandx", label:"Brand X", color:"#9aa0b5",
+     compute(input){ return []; }  // restituisci offerte normalizzate
+   };
+*/
+/* ===================== BRAND: ALPERIA ===================== */
+/* Modello Alperia (dal COMPARATORE ALPERIA):
+   - tipo "fissa" (prezzoFisso; business luce = media fasce F1/F2/F3) o "index" (indice + spread[])
+   - luce: + dispacciamento 0,02 €/kWh; gas: nessun dispacciamento
+   - quota fissa = PCV annuo / 12 × mesi (pcv[0] = 1° anno)
+   - bollino = compenso interno (verde/giallo/rosso), mostrato solo nei risultati, MAI in PDF/WhatsApp */
+const ALPERIA = {
+  id:"alperia", label:"Alperia", color:"#7CB342",
+  DISP_LUCE:0.02,
+  OFFERTE:[
+    // DOMESTICO · FISSA · LUCE
+    { nome:"Direct",   cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.0990, pcv:[109] },
+    { nome:"Safety",   cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1360, pcv:[97]  },
+    { nome:"Pure",     cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1113, pcv:[144] },
+    { nome:"Start",    cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1385, pcv:[72]  },
+    { nome:"Standard", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1180, pcv:[108] },
+    { nome:"Clear",    cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1260, pcv:[145] },
+    { nome:"Premium",  cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1450, pcv:[157] },
+    // DOMESTICO · FISSA · GAS
+    { nome:"Smile Start", cliente:"domestico", tipo:"fissa", fornitura:"gas", prezzoFisso:0.3989, pcv:[144] },
+    // DOMESTICO · INDEX · LUCE
+    { nome:"Terzo Tempo",   cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.010],  pcv:[121,121,61] },
+    { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.010],  pcv:[109,97,85]  },
+    { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.000],  pcv:[145] },
+    { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.027],  pcv:[73]  },
+    { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0135], pcv:[109] },
+    { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.024],  pcv:[120] },
+    { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.000],  pcv:[181] },
+    { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.020],  pcv:[157] },
+    { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.033],  pcv:[181] },
+    { nome:"Home Plus",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0297], pcv:[157] },
+    // DOMESTICO · INDEX · GAS
+    { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.11],      pcv:[108,96,84] },
+    { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.08],      pcv:[90]  },
+    { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16],      pcv:[72]  },
+    { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.12],      pcv:[108] },
+    { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16],      pcv:[120] },
+    { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.08],      pcv:[180] },
+    { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.12,0.16], pcv:[156] },
+    { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16],      pcv:[180] },
+    // BUSINESS · FISSA · LUCE (F1/F2/F3)
+    { nome:"Caldaro", cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.129,F2:0.139,F3:0.129}, pcv:[109] },
+    { nome:"Braies",  cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.129,F2:0.147,F3:0.126}, pcv:[97]  },
+    { nome:"Neves",   cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.134,F2:0.147,F3:0.122}, pcv:[144] },
+    // BUSINESS · INDEX · LUCE
+    { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0079],        pcv:[149] },
+    { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0119],        pcv:[149] },
+    { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0139],        pcv:[149] },
+    { nome:"Resia",   cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0181],        pcv:[149] },
+    { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0216],        pcv:[149] },
+    { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0132,0.0216], pcv:[199] },
+    // BUSINESS · INDEX · GAS
+    { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.0990],        pcv:[149] },
+    { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1190],        pcv:[149] },
+    { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390],        pcv:[149] },
+    { nome:"Resia",   cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1500],        pcv:[149] },
+    { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1790],        pcv:[149] },
+    { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390,0.1790], pcv:[189] },
+  ],
+  /* BOLLINI (compenso interno) — chiave "<nome>__<tipo>__<fornitura>", valori "verde"|"giallo"|"rosso".
+     Da compilare quando assegnati. Non compare MAI nei documenti al cliente. */
+  bolliniOfferte:{
+    // "Direct__fissa__luce": "verde",
+  },
+  _key(o){ return `${o.nome}__${o.tipo}__${o.fornitura}`; },
+  compute(input){
+    const out=[];
+    const cli=input.tipoCliente;
+    const DISP=this.DISP_LUCE;
+    const build=(servizio, svc, idxProp)=>{
+      const consumo = servizio==="luce" ? svc.kwh : svc.smc;
+      if(!(consumo>0) || !svc.mesi.length) return;
+      const idx = avg(svc.mesi, idxProp);
+      const nMesi = svc.mesi.length;
+      this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio).forEach(o=>{
+        let prezzo, note, tipoBadge, tipoPrezzo;
+        if(o.tipo==="fissa"){
+          let base=o.prezzoFisso, fasceNote="";
+          if(o.fasce){ base=(o.fasce.F1+o.fasce.F2+o.fasce.F3)/3; fasceNote=` (media fasce F1 ${o.fasce.F1.toFixed(3)} · F2 ${o.fasce.F2.toFixed(3)} · F3 ${o.fasce.F3.toFixed(3)})`; }
+          prezzo = servizio==="luce" ? base+DISP : base;
+          note = servizio==="luce"
+            ? `Prezzo fisso ${base.toFixed(4)} €/kWh${fasceNote} + disp. ${DISP.toFixed(4)} €/kWh`
+            : `Prezzo fisso ${base.toFixed(4)} €/Smc`;
+          tipoBadge={text:"Prezzo Fisso",cls:"b-fix"}; tipoPrezzo="fissa";
+        } else {
+          const spread=o.spread[0];
+          prezzo = servizio==="luce" ? idx+spread+DISP : idx+spread;
+          note = servizio==="luce"
+            ? `PUN medio ${idx.toFixed(4)} + spread ${spread.toFixed(4)} + disp. ${DISP.toFixed(4)} €/kWh`
+            : `PSV medio ${idx.toFixed(4)} + spread ${spread.toFixed(4)} €/Smc`;
+          if(o.spread.length>1) note += ` · dal 2° anno spread ${o.spread[1].toFixed(4)}`;
+          tipoBadge={text: servizio==="gas"?"Indicizzata PSV":"Indicizzata PUN",cls:"b-ind"}; tipoPrezzo="variabile";
+        }
+        const energia = consumo*prezzo;
+        const canoneMese = o.pcv[0]/12;
+        const fisso = canoneMese*nMesi;
+        const tot = energia+fisso;
+        if(o.pcv.length>1) note += ` · PCV per anno: ${o.pcv.map((v,i)=>`${i+1}° € ${v}`).join(", ")}`;
+        const bollino = this.bolliniOfferte[this._key(o)] || null;
+        out.push({
+          brandId:this.id, brandLabel:this.label, brandColor:this.color,
+          servizio, nome:"ALPERIA "+o.nome, tipoBadge,
+          base:"materia", baseLabel: servizio==="gas" ? "spesa materia gas" : "spesa materia energia",
+          periodo:monthLabels(svc.mesi), nMesi,
+          costoAttuale:svc.attuale, costoOfferta:tot, risparmio:svc.attuale-tot,
+          tipoPrezzo, bollino,
+          dettaglio:[
+            {label: servizio==="gas"?"Spesa gas naturale":"Spesa materia energia", value:"€ "+money(energia)},
+            {label:`Quota fissa (PCV) € ${money(canoneMese)}/mese × ${nMesi}`, value:"€ "+money(fisso)},
+            {label:"Totale offerta", value:"€ "+money(tot), tot:true},
+          ],
+          note, validita:null,
+        });
+      });
+    };
+    build("luce", input.luce, "pun");
+    build("gas",  input.gas,  "psv");
+    return out;
+  },
+};
+
+const FUTURO_1 = { id:"futuro1", label:"Brand 4", color:"#9aa0b5", enabled:false, compute(){ return []; } };
+
+/* ===================== REGISTRO BRAND ===================== */
+const BRANDS = [
+  { ...ACEA,    enabled:true,  active:true  },
+  { ...FASTWEB, enabled:true,  active:true  },
+  { ...ALPERIA, enabled:true,  active:true  },
+  { ...FUTURO_1, active:false },
+];
+
+/* ===================== UI: brand chips ===================== */
+function renderBrandChips(){
+  const row=document.getElementById("brandRow");
+  row.innerHTML="";
+  BRANDS.forEach((b,i)=>{
+    const chip=document.createElement("label");
+    chip.className="brand-chip"+(b.active?" active":"")+(b.enabled?"":" disabled");
+    if(b.active) chip.style.background=b.color, chip.style.borderColor=b.color;
+    chip.innerHTML=`<span class="dot" style="background:${b.active?'#fff':b.color}"></span>
+      <span>${b.label}${b.enabled?"":" · Prossimamente"}</span>`;
+    if(b.enabled){
+      chip.onclick=()=>{ BRANDS[i].active=!BRANDS[i].active; renderBrandChips(); };
+    }
+    row.appendChild(chip);
+  });
+}
+
+/* ===================== UI: mesi ===================== */
+function renderMesi(){
+  ["periodoLuce","periodoGas"].forEach(containerId=>{
+    const c=document.getElementById(containerId);
+    const name = containerId==="periodoLuce" ? "meseLuce" : "meseGas";
+    c.innerHTML="";
+    MONTHS.forEach(m=>{
+      const lab=document.createElement("label");
+      lab.className="mese";
+      lab.setAttribute("data-tip",`PUN: ${m.pun.toFixed(5)} €/kWh\nPSV: ${m.psv.toFixed(5)} €/Smc`);
+      lab.innerHTML=`<input type="checkbox" name="${name}" value="${m.key}"> <span>${m.label}</span>`;
+      c.appendChild(lab);
+    });
+  });
+}
+function togglePeriodi(){
+  const d=document.getElementById("periodiDiversi").checked;
+  document.getElementById("periodoGasWrap").style.display=d?"":"none";
+  document.getElementById("periodoLuceLabel").innerHTML = d
+    ? 'Periodo di fatturazione <span class="tag-luce">LUCE</span>'
+    : 'Periodo di fatturazione';
+}
+
+/* ===================== RACCOLTA INPUT ===================== */
+function gatherInput(){
+  const diversi = document.getElementById("periodiDiversi").checked;
+  const luceMesi = [...document.querySelectorAll('input[name="meseLuce"]:checked')].map(c=>c.value);
+  const gasMesi = diversi
+    ? [...document.querySelectorAll('input[name="meseGas"]:checked')].map(c=>c.value)
+    : luceMesi.slice();
+  return {
+    nome: document.getElementById("nome").value.trim(),
+    tipoCliente: document.getElementById("tipoCliente").value,
+    convergenza: document.getElementById("convergenza").checked,
+    potenza: document.getElementById("potenza").value,
+    consumoAnnuo: num("consumoAnnuo"),
+    totaleBolletta: num("totaleBolletta"),
+    spesaAnnua: num("spesaAnnua"),
+    periodiDiversi: diversi,
+    luce:{
+      mesi:luceMesi, kwh:num("kwh"),
+      quotaConsumi:num("quotaConsumiLuce"), quotaFissa:num("quotaFissaLuce"),
+      attuale:num("quotaConsumiLuce")+num("quotaFissaLuce"),
+    },
+    gas:{
+      mesi:gasMesi, smc:num("smc"),
+      quotaConsumi:num("quotaConsumiGas"), quotaFissa:num("quotaFissaGas"),
+      attuale:num("quotaConsumiGas")+num("quotaFissaGas"),
+    },
+  };
+}
+
+/* ===================== MOTORE CONFRONTO ===================== */
+let LAST_OFFERS = {};   // id -> offer (per PDF/WhatsApp)
+let LAST_INPUT = null;
+
+document.getElementById("form").addEventListener("submit",function(e){
+  e.preventDefault();
+  runConfronto();
+});
+
+function runConfronto(skipSpesaCheck){
+  const input = gatherInput();
+  LAST_INPUT = input;
+
+  const haLuce = input.luce.kwh>0;
+  const haGas  = input.gas.smc>0;
+  if(!haLuce && !haGas){ alert("Inserisci i dati di almeno un servizio (Luce e/o Gas)."); return; }
+  if(haLuce && !input.luce.mesi.length){ alert("Seleziona almeno un mese per il periodo Luce."); return; }
+  if(haGas && !input.gas.mesi.length){ alert("Seleziona almeno un mese per il periodo Gas."); return; }
+
+  const activeBrands = BRANDS.filter(b=>b.enabled && b.active);
+  if(!activeBrands.length){ alert("Attiva almeno un brand da confrontare."); return; }
+
+  // Invito a inserire la spesa annua quando è in gioco un'offerta a fasce (FLAT)
+  // e il dato manca: l'analisi annuale è quella che conta per le FLAT.
+  if(!skipSpesaCheck && needSpesaAnnuaPrompt(input, activeBrands)){
+    apriModale("spesaAnnuaModal");
+    return;
+  }
+
+  // raccogli tutte le offerte
+  let all=[];
+  activeBrands.forEach(b=>{ try{ all=all.concat(b.compute(input)); }catch(err){ console.error(b.id,err); } });
+
+  // tipo prezzo (fissa/variabile) per il filtro: esplicito su Alperia, dedotto altrove dal badge
+  all.forEach(o=>{ if(!o.tipoPrezzo) o.tipoPrezzo = (o.tipoBadge.cls==="b-ind") ? "variabile" : "fissa"; });
+
+  // FILTRI: tipo offerta (tutti i brand) + bollino (solo Alperia)
+  const tipoF = document.getElementById("tipoOffertaFiltro")?.value || "tutte";
+  const bollinoF = document.getElementById("bollinoFiltro")?.value || "tutti";
+  all = all.filter(o=>{
+    if(tipoF!=="tutte" && o.tipoPrezzo!==tipoF) return false;
+    if(bollinoF!=="tutti" && o.brandId==="alperia"){
+      const val = o.bollino || "nd";
+      if(val!==bollinoF) return false;
+    }
+    return true;
+  });
+
+  // assegna id e memorizza
+  LAST_OFFERS={};
+  all.forEach((o,i)=>{ o.id="of"+i; LAST_OFFERS[o.id]=o; });
+
+  // raggruppa per servizio
+  const luce = all.filter(o=>o.servizio==="luce").sort((a,b)=>b.risparmio-a.risparmio);
+  const gas  = all.filter(o=>o.servizio==="gas").sort((a,b)=>b.risparmio-a.risparmio);
+
+  const body=document.getElementById("resultsBody");
+  body.innerHTML="";
+
+  if(input.periodiDiversi && haLuce && haGas &&
+     JSON.stringify(input.luce.mesi)!==JSON.stringify(input.gas.mesi)){
+    body.innerHTML += `<div class="info-diversi">
+      <b>⚡ Analisi con periodi differenziati</b><br>
+      Luce: ${monthLabels(input.luce.mesi)}<br>
+      Gas: ${monthLabels(input.gas.mesi)}
+    </div>`;
+  }
+
+  // Banner regola Fastweb Gas (attivabile solo con Fastweb Luce)
+  const fwActive = activeBrands.some(b=>b.id==="fastweb");
+  if(fwActive && haGas){
+    body.innerHTML += !haLuce
+      ? `<div class="info-fwgas gas-esclusa">🔥 <b>Fastweb Gas non è inclusa in questo confronto.</b> È attivabile <b>solo insieme a Fastweb Luce</b> (offerta DUAL o upsell su cliente Fastweb Luce già esistente). Aggiungi i dati della <b>Luce</b> per includerla.</div>`
+      : `<div class="info-fwgas">ℹ️ <b>Fastweb Gas</b> è attivabile <b>solo con Fastweb Luce</b> (DUAL o upsell su cliente Fastweb Luce). È inclusa nel confronto perché stai analizzando anche la Luce.</div>`;
+  }
+
+  if(luce.length && gas.length){
+    // Analisi Luce + Gas: visibili solo le due offerte vincitrici; le altre dietro un pulsante
+    luce[0]._winner = true; gas[0]._winner = true;
+    body.innerHTML += groupHeadHTML("#1f9e5a","★","Migliori proposte — Luce e Gas");
+    body.innerHTML += renderCard(luce[0]) + renderCard(gas[0]);
+
+    const restL = luce.slice(1), restG = gas.slice(1);
+    let rest = "";
+    if(restL.length){
+      rest += groupHeadHTML("#e65100","💡",`Altre offerte Luce (${restL.length})`);
+      restL.forEach(o=>{ o._winner=false; rest += renderCard(o); });
+    }
+    if(restG.length){
+      rest += groupHeadHTML("#0277bd","🔥",`Altre offerte Gas (${restG.length})`);
+      restG.forEach(o=>{ o._winner=false; rest += renderCard(o); });
+    }
+    if(rest) body.innerHTML += renderAltreToggle(rest, restL.length+restG.length);
+  } else if(luce.length){
+    body.innerHTML += renderGroupCollassabile("Luce","#e65100","💡",luce);
+  } else if(gas.length){
+    body.innerHTML += renderGroupCollassabile("Gas","#0277bd","🔥",gas);
+  } else {
+    body.innerHTML += `<div class="empty">Nessuna offerta disponibile per i dati inseriti con i brand selezionati.</div>`;
+  }
+
+  const res=document.getElementById("results");
+  res.style.display="block";
+  res.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function groupHeadHTML(color, icon, label){
+  return `<div class="group-head"><span class="ic" style="background:${color}">${icon}</span> ${label}</div>`;
+}
+/* Singolo servizio: mostra solo la vincitrice, le altre dietro al pulsante */
+function renderGroupCollassabile(titolo, color, icon, offers){
+  offers[0]._winner = true;
+  let html = groupHeadHTML(color, icon, `Migliore offerta ${titolo}`);
+  html += renderCard(offers[0]);
+  const rest = offers.slice(1);
+  if(rest.length){
+    let r = "";
+    rest.forEach(o=>{ o._winner=false; r += renderCard(o); });
+    html += renderAltreToggle(r, rest.length, titolo);
+  }
+  return html;
+}
+
+/* Pulsante cliccabile "Tutte le altre offerte" + contenitore nascosto */
+function renderAltreToggle(restHtml, count, suffix){
+  const label = suffix ? `Tutte le altre offerte ${suffix}` : "Tutte le altre offerte";
+  return `<button type="button" id="toggleAltre" class="btn-altre" data-count="${count}" data-label="${label}" onclick="toggleAltreOfferte()">
+      <span class="ic">≡</span>
+      <span class="btn-altre-txt">${label} (${count}) — clicca per confrontare</span>
+      <span class="chev">▾</span>
+    </button>
+    <div id="altreOfferte" class="altre-wrap" style="display:none">${restHtml}</div>`;
+}
+function toggleAltreOfferte(){
+  const w=document.getElementById("altreOfferte");
+  const b=document.getElementById("toggleAltre");
+  if(!w||!b) return;
+  const open = (w.style.display==="none");
+  w.style.display = open ? "block" : "none";
+  b.classList.toggle("open", open);
+  b.querySelector(".btn-altre-txt").textContent = open
+    ? "Nascondi le altre offerte"
+    : `${b.dataset.label} (${b.dataset.count}) — clicca per confrontare`;
+}
+
+/* Bollino Alperia (compenso interno) — solo nei risultati, mai in PDF/WhatsApp */
+function bollinoInfo(val){
+  if(val==="verde")  return { emoji:"🟢", label:"Normale",    cls:"boll-verde"  };
+  if(val==="giallo") return { emoji:"🟡", label:"Basso",      cls:"boll-giallo" };
+  if(val==="rosso")  return { emoji:"🔴", label:"Bassissimo", cls:"boll-rosso"  };
+  return { emoji:"⚪", label:"Non specificato", cls:"boll-nd" };
+}
+
+function renderCard(o){
+  const isWinner = !!o._winner;
+  const ok = o.risparmio>=0;
+  const imp = Math.abs(o.risparmio).toFixed(2);
+  const det = o.dettaglio.map(r=>
+    r.sub
+      ? `<div class="det-sub">${r.label}</div>`
+      : `<div class="det-row${r.tot?' tot':''}"><span>${r.label}</span><span>${r.value}</span></div>`).join("");
+  const ribbon = isWinner ? `<div class="ribbon">★ Vincitore ${o.servizio} — ${o.brandLabel}</div>` : "";
+  const margBadge = o.marginalita ? `<span class="badge b-fix">★ Alta marginalità</span>` : "";
+  const bollinoBadge = (o.brandId==="alperia")
+    ? (()=>{ const b=bollinoInfo(o.bollino); return `<span class="badge ${b.cls}">${b.emoji} Bollino: ${b.label}</span>`; })()
+    : "";
+  return `
+    <div class="offer ${isWinner?'winner':''}" id="card_${o.id}" style="border-left-color:${o.brandColor}">
+      ${ribbon}
+      <div class="offer-top">
+        <h3>${o.nome}</h3>
+        <div class="offer-pills">
+          <span class="serv-pill serv-${o.servizio}">${o.servizio==="gas"?"🔥 Gas":"💡 Luce"}</span>
+          <span class="brand-pill" style="background:${o.brandColor}">${o.brandLabel}</span>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge ${o.tipoBadge.cls}">${o.tipoBadge.text}</span>
+        <span class="badge b-base">confronto su ${o.baseLabel}</span>
+        ${o.validita?`<span class="badge b-base">validità ${o.validita}</span>`:""}
+        ${o.requiresLuce?`<span class="badge b-req">🔗 Solo con Fastweb Luce</span>`:""}
+        ${margBadge}
+        ${bollinoBadge}
+      </div>
+      <div class="periodo-ref">Periodo di riferimento: ${o.periodo}</div>
+
+      ${o.flat ? renderFlatNav(o) : ""}
+
+      <div class="confronto">
+        <div class="pbox p-att"><div class="p-lbl">Costo attuale<small>${o.baseLabel}</small></div><div class="p-imp">€ ${money(o.costoAttuale)}</div></div>
+        <div class="vs">vs</div>
+        <div class="pbox p-new"><div class="p-lbl">Con ${o.brandLabel}<small>offerta proposta</small></div><div class="p-imp">€ ${money(o.costoOfferta)}</div></div>
+      </div>
+
+      <div class="saving ${ok?'ok':'ko'}">${o.flat ? (ok?"✓ Risparmio sul periodo: € "+imp:"⚠ Sul periodo l'offerta è più alta di € "+imp) : (ok?"✓ Risparmio stimato: € "+imp:"⚠ Maggior costo stimato: € "+imp)}</div>
+      ${o.flat ? renderFlatAnnual(o) : ""}
+
+      <details class="det">
+        <summary>Dettaglio calcolo</summary>
+        ${det}
+        ${o.note?`<div class="det-note">${o.note}</div>`:""}
+      </details>
+
+      <div class="actions">
+        <button class="btn-pdf" onclick="stampaPDF('${o.id}')">Stampa preventivo PDF</button>
+        <button class="btn-wa" onclick="inviaWhatsApp('${o.id}')">Invia su WhatsApp</button>
+      </div>
+    </div>`;
+}
+
+/* ===================== PDF (finestra di stampa) ===================== */
+function stampaPDF(id){
+  const o=LAST_OFFERS[id]; if(!o) return;
+  const nome=LAST_INPUT?.nome || "—";
+  const ok=o.risparmio>=0; const imp=Math.abs(o.risparmio).toFixed(2);
+  const oggi=new Date().toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"});
+  const det=o.dettaglio.map(r=>`<tr class="${r.tot?'tot':''}"><td>${r.label}</td><td class="amt">${r.value}</td></tr>`).join("");
+
+  /* Blocco confronto: per le offerte a fasce (FLAT) priorità al RISPARMIO ANNUO;
+     se l'annuo è poco/assente si valuta il risparmio sul periodo. */
+  const SOGLIA_ANNUO = 24; // €/anno: sotto questa soglia il risparmio annuo è "poco"
+  let confrontoBlock;
+  if(o.flat && o.flatAnnual){
+    const fa = o.flatAnnual;
+    const pOk = o.risparmio>=0, pImp = Math.abs(o.risparmio).toFixed(2);
+    const annualSaving = fa.hasSpesa ? fa.delta : null;
+    const annualPrimary = (annualSaving!==null && annualSaving >= SOGLIA_ANNUO);
+    if(annualPrimary){
+      confrontoBlock = `
+      <div class="st">Confronto ANNUALE — offerta a fasce</div>
+      <div class="cmp">
+        <div class="cbox att"><div class="l">Spesa annua attuale<small>dichiarata</small></div><div class="v">€ ${money(fa.spesaAnnua)}</div></div>
+        <div class="cbox new"><div class="l">Con ${o.brandLabel}<small>stima annua</small></div><div class="v">€ ${money(fa.totalAnnual)}</div></div>
+      </div>
+      <div class="ban ok big">★ Risparmio ANNUO stimato: € ${money(annualSaving)}</div>
+      <div class="infobox">${pOk
+        ? `Sul periodo selezionato (${o.periodo}) il risparmio è di € ${pImp}. Riferimento periodo: totale bolletta € ${money(o.costoAttuale)} contro € ${money(o.costoOfferta)} (canone × ${o.flat.numMesi}).`
+        : `Sul periodo selezionato l'offerta a fasce risulta più alta di € ${pImp}, <strong>ma sull'anno è più conveniente</strong>: per le offerte a fasce conta il totale annuale. Riferimento periodo: € ${money(o.costoAttuale)} contro € ${money(o.costoOfferta)} (canone × ${o.flat.numMesi}).`}</div>`;
+    } else {
+      confrontoBlock = `
+      <div class="st">Confronto sul periodo — offerta a fasce</div>
+      <div class="cmp">
+        <div class="cbox att"><div class="l">Totale bolletta (periodo)<small>${o.periodo}</small></div><div class="v">€ ${money(o.costoAttuale)}</div></div>
+        <div class="cbox new"><div class="l">Con ${o.brandLabel} (periodo)<small>canone × ${o.flat.numMesi}</small></div><div class="v">€ ${money(o.costoOfferta)}</div></div>
+      </div>
+      <div class="ban ${pOk?'ok':'ko'} big">${pOk?`Risparmio sul periodo: € ${pImp}`:`Sul periodo l'offerta è più alta di € ${pImp}`}</div>
+      <div class="warnbox">${fa.hasSpesa
+        ? (annualSaving>=0
+            ? `Sull'anno il risparmio stimato è contenuto: € ${money(annualSaving)} (spesa annua € ${money(fa.spesaAnnua)} → € ${money(fa.totalAnnual)}/anno).`
+            : `Sull'anno l'offerta risulta più alta di € ${money(Math.abs(annualSaving))} (€ ${money(fa.totalAnnual)}/anno).`)
+        : `Costo annuo stimato con l'offerta: € ${money(fa.totalAnnual)}. Inserisci la spesa annua per il confronto sull'anno.`}</div>`;
+    }
+  } else {
+    confrontoBlock = `
+      <div class="st">Confronto costi (${o.baseLabel})</div>
+      <div class="cmp">
+        <div class="cbox att"><div class="l">Costo attuale<small>${o.baseLabel}</small></div><div class="v">€ ${money(o.costoAttuale)}</div></div>
+        <div class="cbox new"><div class="l">Con ${o.brandLabel}<small>offerta proposta</small></div><div class="v">€ ${money(o.costoOfferta)}</div></div>
+      </div>
+      <div class="ban ${ok?'ok':'ko'}">${ok?"Risparmio stimato sul periodo: € "+imp:"Maggior costo stimato sul periodo: € "+imp}</div>`;
+  }
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Preventivo ${o.brandLabel} - ${nome}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box} body{font-family:'Montserrat',Arial,sans-serif; margin:0; padding:28px; color:#222; font-size:14px}
+    .doc{max-width:720px; margin:0 auto}
+    .hd{display:flex; justify-content:space-between; align-items:center; padding:16px 20px; background:${o.brandColor}; color:#fff; border-radius:10px 10px 0 0}
+    .hd .brand{font-size:20px; font-weight:800}
+    .hd .ttl{font-size:12px; text-transform:uppercase; letter-spacing:1px; opacity:.95}
+    .info{display:grid; grid-template-columns:1fr 1fr; border:1px solid #e0e0e0; border-top:none; padding:16px 20px; border-radius:0 0 10px 10px; margin-bottom:22px}
+    .info>div{padding:7px 0; display:flex; flex-direction:column}
+    .info .full{grid-column:1/-1; border-top:1px dashed #e0e0e0; padding-top:10px; margin-top:4px}
+    .lab{font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#888; font-weight:600}
+    .val{font-size:15px; font-weight:700; margin-top:2px}
+    .st{font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#1f2545; margin:22px 0 12px; padding-bottom:6px; border-bottom:2px solid ${o.brandColor}}
+    .cmp{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px}
+    .cbox{padding:18px; border-radius:10px; text-align:center}
+    .att{background:#fdecea; border:1px solid #f5b7b1} .new{background:#e8f5e9; border:1px solid #a5d6a7}
+    .cbox .l{font-size:11px; text-transform:uppercase; color:#555; font-weight:700}
+    .cbox .l small{display:block; font-weight:400; text-transform:none; color:#777; font-size:11px; margin-top:2px}
+    .cbox .v{font-size:28px; font-weight:800; margin-top:8px}
+    .att .v{color:#c62828} .new .v{color:#2e7d32}
+    .ban{padding:14px; border-radius:10px; text-align:center; font-size:16px; font-weight:700; color:#fff}
+    .ban.ok{background:#1f9e5a} .ban.ko{background:#d64550}
+    .ban.big{font-size:21px; padding:17px}
+    .infobox{margin-top:10px; padding:11px 13px; background:#eef4ff; border-left:4px solid #3a7bd5; border-radius:6px; font-size:12px; color:#23304d; line-height:1.5}
+    .warnbox{margin-top:10px; padding:11px 13px; background:#fff8e1; border-left:4px solid #ffb300; border-radius:6px; font-size:12px; color:#5b4310; line-height:1.5}
+    table{width:100%; border-collapse:collapse; margin-top:4px}
+    td{padding:9px 12px; border-bottom:1px solid #eee} td.amt{text-align:right; white-space:nowrap}
+    tr.tot td{border-top:2px solid ${o.brandColor}; border-bottom:none; font-weight:800; font-size:15px; padding-top:12px}
+    .note{margin-top:12px; font-size:12px; color:#555; background:#f7f8fb; padding:12px; border-radius:8px}
+    .disc{margin-top:22px; padding:14px 16px; background:#f8f9fa; border-left:4px solid #d9534f; border-radius:6px; font-size:11px; color:#555; line-height:1.6}
+    @media print{ .hd,.cbox,.ban{-webkit-print-color-adjust:exact; print-color-adjust:exact} }
+  </style></head><body>
+    <div class="doc">
+      <div class="hd"><div class="brand">${o.brandLabel}</div><div class="ttl">Preventivo personalizzato</div></div>
+      <div class="info">
+        <div><span class="lab">Cliente</span><span class="val">${nome}</span></div>
+        <div><span class="lab">Data preventivo</span><span class="val">${oggi}</span></div>
+        <div><span class="lab">Offerta</span><span class="val">${o.nome}</span></div>
+        <div><span class="lab">Tipologia</span><span class="val">${o.tipoBadge.text}${o.validita?" · validità "+o.validita:""}</span></div>
+        <div class="full"><span class="lab">Periodo di riferimento (${o.servizio})</span><span class="val">${o.periodo}</span></div>
+      </div>
+      ${confrontoBlock}
+      <div class="st">Dettaglio offerta</div>
+      <table>${det}</table>
+      ${o.note?`<div class="note">${o.note}</div>`:""}
+      <div class="disc"><strong>Nota informativa:</strong> calcolo indicativo. Le offerte a prezzo fisso/indicizzato si riferiscono alla sola materia energia/gas; le offerte a fasce confrontano il totale bolletta. Non sempre incluse IVA, accise, oneri di sistema, trasporto, gestione contatore e canone RAI.</div>
+    </div>
+  </body></html>`;
+
+  const w=window.open("","_blank");
+  w.document.write(html); w.document.close(); w.focus();
+  setTimeout(()=>w.print(),600);
+}
+
+/* ===================== WHATSAPP ===================== */
+function inviaWhatsApp(id){
+  const o=LAST_OFFERS[id]; if(!o) return;
+  const nome=LAST_INPUT?.nome;
+  if(!nome){ alert("Inserisci il nome cliente."); return; }
+  const ok=o.risparmio>=0; const imp=Math.abs(o.risparmio).toFixed(2);
+  const det=o.dettaglio.map(r=>`- ${r.label}: ${r.value}`).join("\n");
+  let esito;
+  if(o.flat && o.flatAnnual){
+    const fa=o.flatAnnual;
+    const annualSaving = fa.hasSpesa ? fa.delta : null;
+    if(annualSaving!==null && annualSaving >= 24){
+      esito = `*RISPARMIO ANNUO STIMATO: € ${money(annualSaving)}*\n(sul periodo: ${ok?`risparmio € ${imp}`:`offerta più alta di € ${imp}, ma sull'anno conviene`})`;
+    } else if(fa.hasSpesa){
+      esito = ok
+        ? `*RISPARMIO SUL PERIODO: € ${imp}*\n(risparmio annuo stimato € ${money(Math.max(annualSaving,0))})`
+        : `*Sul periodo l'offerta è più alta di € ${imp}*\n(costo annuo stimato € ${money(fa.totalAnnual)})`;
+    } else {
+      esito = `${ok?`*RISPARMIO SUL PERIODO: € ${imp}*`:`*Sul periodo l'offerta è più alta di € ${imp}*`}\n(costo annuo stimato € ${money(fa.totalAnnual)} — inserisci la spesa annua per il confronto annuale)`;
+    }
+  } else {
+    esito = ok ? `*RISPARMIO STIMATO: € ${imp}*` : `*MAGGIOR COSTO STIMATO: € ${imp}*`;
+  }
+
+  const msg=`*PREVENTIVO ${o.brandLabel.toUpperCase()}*
+
+*Cliente:* ${nome}
+*Offerta:* ${o.nome}
+*Tipologia:* ${o.tipoBadge.text}${o.validita?" (validità "+o.validita+")":""}
+*Servizio:* ${o.servizio==="gas"?"Gas":"Luce"}
+*Periodo:* ${o.periodo}
+
+------------------------------
+*CONFRONTO (${o.baseLabel})*
+------------------------------
+Costo attuale: *€ ${money(o.costoAttuale)}*
+Con ${o.brandLabel}: *€ ${money(o.costoOfferta)}*
+
+${esito}
+
+*Dettaglio offerta:*
+${det}
+${o.note?"\n"+o.note:""}
+
+_Calcolo indicativo. Le offerte a fasce confrontano il totale bolletta, le altre la sola materia energia/gas. Non sempre incluse IVA, oneri di sistema, accise, trasporto e gestione contatore._`;
+
+  window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+}
+
+/* ===================== MODALI ===================== */
+function apriModale(id){
+  const o=document.getElementById(id); o.classList.add("open"); o.setAttribute("aria-hidden","false");
+}
+function chiudiModale(id){
+  const o=document.getElementById(id); o.classList.remove("open"); o.setAttribute("aria-hidden","true");
+}
+function apriOfferte(){ apriModale("offerteOverlay"); vaiSlide(0); }
+
+/* Invito (non bloccante) a recuperare la spesa annua quando una FLAT è applicabile */
+function needSpesaAnnuaPrompt(input, activeBrands){
+  const fwActive = activeBrands.some(b=>b.id==="fastweb");
+  const flatApplicabile =
+    input.tipoCliente==="domestico" &&
+    input.potenza!=="altro" &&
+    input.luce.kwh>0 && input.luce.mesi.length>0 &&
+    input.consumoAnnuo>0 && input.consumoAnnuo<=5000;
+  return fwActive && flatApplicabile && !(input.spesaAnnua>0);
+}
+function spesaAnnuaInserisci(){
+  chiudiModale("spesaAnnuaModal");
+  const f=document.getElementById("spesaAnnua");
+  f.scrollIntoView({behavior:"smooth", block:"center"});
+  setTimeout(()=>f.focus(), 300);
+}
+function spesaAnnuaProcedi(){
+  chiudiModale("spesaAnnuaModal");
+  runConfronto(true);
+}
+
+const SLIDES=[
+  { src:"assets/offerte-in-corso.jpeg", download:"offerte-energia.jpeg", title:"Offerte Luce e Gas" },
+  { src:"assets/acea-fix-dettaglio.png", download:"acea-fix-dettaglio.png", title:"ACEA FIX" },
+];
+let curSlide=0;
+function cambiaSlide(d){ vaiSlide(curSlide+d); }
+function vaiSlide(i){
+  const n=SLIDES.length;
+  if(i<0) i=n-1; if(i>=n) i=0; curSlide=i;
+  document.querySelectorAll("#offerteOverlay .slide").forEach((s,idx)=>s.classList.toggle("active",idx===i));
+  document.querySelectorAll("#offerteOverlay .dot").forEach((d,idx)=>d.classList.toggle("active",idx===i));
+  document.getElementById("slideTitle").textContent=SLIDES[i].title;
+  document.getElementById("slideCounter").textContent=`${i+1} / ${n}`;
+  const dl=document.getElementById("slideDownload");
+  dl.href=SLIDES[i].src; dl.setAttribute("download",SLIDES[i].download);
+}
+document.addEventListener("click",(e)=>{
+  if(e.target.classList && e.target.classList.contains("modal-overlay")){
+    e.target.classList.remove("open"); e.target.setAttribute("aria-hidden","true");
+  }
+});
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="Escape") document.querySelectorAll(".modal-overlay.open").forEach(o=>{o.classList.remove("open"); o.setAttribute("aria-hidden","true");});
+});
+
+/* ===================== RIEPILOGO OFFERTE FASTWEB ===================== */
+let riepPower="3", riepClient=false;
+function apriRiepilogo(){ apriModale("riepOverlay"); renderRiepilogo(); }
+function renderRiepilogo(){
+  const F=FASTWEB, body=document.getElementById("riepBody");
+  const cli=riepClient;
+  // ---- card FLAT ----
+  const cards=F.TIER_NAMES.map((name,t)=>{
+    const list=F._monthly(t,riepPower,false);
+    const price=cli?F._monthly(t,riepPower,true):list;
+    const soglia=F.THRESHOLDS[t].toLocaleString("it-IT");
+    const extra=money(F.TIER_EXTRA[t]);
+    const ultra=t===4?`<br>tolleranza fino a ${(F.THRESHOLDS[t]+F.ULTRA_TOLERANCE).toLocaleString("it-IT")} kWh/anno`:"";
+    return `<div class="tier-card">
+      <span class="pill">${name}</span>
+      ${cli?`<span class="old">${list}€</span>`:""}
+      <div class="big">${price}€</div>
+      <p class="sub">al mese</p>
+      <p class="dsc">fino a ${soglia} kWh/anno${ultra}<br>extra/rimborso ${extra}€/kWh<br>potenza ${riepPower.replace(".",",")} kW</p>
+    </div>`;
+  }).join("");
+
+  const seg = `<div class="riep-toggles">
+      <button class="chip ${!cli?'active':''}" onclick="riepSetClient(false)">Listino</button>
+      <button class="chip ${cli?'active':''}" onclick="riepSetClient(true)">Clienti Fastweb</button>
+    </div>`;
+  const powerSeg = `<div class="riep-toggles">
+      <button class="chip ${riepPower==='3'?'active':''}" onclick="riepSetPower('3')">3 kW</button>
+      <button class="chip ${riepPower==='4.5'?'active':''}" onclick="riepSetPower('4.5')">4,5 kW</button>
+      <button class="chip ${riepPower==='6'?'active':''}" onclick="riepSetPower('6')">6 kW</button>
+    </div>`;
+
+  const cDom=cli?F.DOM_CANONE_CONV:F.DOM_CANONE_LISTINO;
+  const cBiz=cli?F.BIZ_CANONE_CONV:F.BIZ_CANONE_LISTINO;
+  const cGasDom=cli?F.GAS_DOM_CANONE_CONV:F.GAS_DOM_CANONE_LISTINO;
+  const cGasBiz=cli?F.GAS_BIZ_CANONE_CONV:F.GAS_BIZ_CANONE_LISTINO;
+  const who=cli?"cliente":"non cliente";
+
+  body.innerHTML=`
+    <div class="riep-head"><div>OFFERTE FLAT (canone fisso) — validità 36 mesi</div>${seg}</div>
+    <div class="riep-head" style="background:#9b91d6">${powerSeg}</div>
+    <div class="tier-cards">${cards}</div>
+
+    <div class="riep-head">A CONSUMO — DOMESTICO ${seg}</div>
+    <div class="riep-block">
+      <div class="t">Fastweb Luce Fix</div>
+      <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>€${money(F.DOM_FIX_RAW)}/kWh</strong> (+ disp. €${money(F.DISP)} → ${money(F.DOM_FIX_RAW+F.DISP)} €/kWh)</div>
+      <div class="hint">Validità 12 mesi</div>
+      <div class="div"></div>
+      <div class="t">Fastweb Luce Flex</div>
+      <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>PUN + €${money(F.DOM_FLEX_SPREAD)}/kWh</strong> (+ disp. €${money(F.DISP)})</div>
+      <div class="hint">Validità 12 mesi</div>
+      <div class="div"></div>
+      <div class="t">Fastweb Gas Flex</div>
+      <div class="ln">Commercializz. <strong>€${cGasDom}/mese</strong> (${who}) + Gas <strong>PSV + €${money(F.GAS_DOM_SPREAD)}/Smc</strong></div>
+      <div class="hint">Validità 12 mesi · DUAL con luce o upsell su cliente Fastweb Luce</div>
+    </div>
+
+    <div class="riep-head">A CONSUMO — BUSINESS ${seg}</div>
+    <div class="riep-block">
+      <div class="t">Fastweb Luce Business Fix</div>
+      <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>€${money(F.BIZ_FIX_RAW)}/kWh</strong> (+ disp. €${money(F.DISP)} → ${money(F.BIZ_FIX_RAW+F.DISP)} €/kWh)</div>
+      <div class="hint">Validità 36 mesi (anche Multisito)</div>
+      <div class="div"></div>
+      <div class="t">Fastweb Luce Business Flex</div>
+      <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>PUN + €${money(F.BIZ_FLEX_SPREAD)}/kWh</strong> (+ disp. €${money(F.DISP)})</div>
+      <div class="hint">Validità 36 mesi (anche Multisito)</div>
+      <div class="div"></div>
+      <div class="t">Fastweb Gas Flex Business</div>
+      <div class="ln">Commercializz. <strong>€${cGasBiz}/mese</strong> (${who}) + Gas <strong>PSV + €${money(F.GAS_BIZ_SPREAD)}/Smc</strong></div>
+      <div class="hint">Validità 12 mesi · DUAL con luce o upsell su cliente Fastweb Luce</div>
+    </div>`;
+}
+function riepSetClient(v){ riepClient=v; renderRiepilogo(); }
+function riepSetPower(p){ riepPower=p; renderRiepilogo(); }
+
+/* ===================== INIT ===================== */
+renderBrandChips();
+renderMesi();
+</script>
+</body>
+</html>
