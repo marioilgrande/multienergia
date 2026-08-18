@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Comparatore Energia Unificato</title>
+<title>Comparatore Multienergia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -32,8 +32,12 @@
     background:linear-gradient(110deg,var(--acea),#3a7bd5 55%,var(--fastweb));
     box-shadow:0 10px 30px rgba(31,37,69,.18);
   }
-  header.app h1{margin:0; font-size:24px; font-weight:800; letter-spacing:.3px}
+  header.app h1{margin:0; font-size:24px; font-weight:800; letter-spacing:.5px}
   header.app p{margin:6px 0 0; font-size:14px; opacity:.95; font-weight:500}
+  header.app .app-brands{margin:11px 0 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:12px; font-weight:700; opacity:1}
+  header.app .app-brands .hb-lbl{opacity:.9; font-weight:600}
+  .hb-pill{display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.2); padding:4px 11px; border-radius:999px; color:#fff}
+  .hb-dot{width:9px; height:9px; border-radius:50%; display:inline-block}
 
   .panel{
     background:var(--card); border:1px solid var(--line); border-radius:16px;
@@ -262,8 +266,9 @@
 <body>
   <div class="container">
     <header class="app">
-      <h1>Comparatore Energia Unificato</h1>
-      <p>ACEA · Fastweb Energia — confronto multi-brand della miglior proposta di risparmio</p>
+      <h1>COMPARATORE MULTIENERGIA</h1>
+      <p class="app-tag">Confronto multi-brand della miglior proposta di risparmio</p>
+      <p class="app-brands" id="appBrands"></p>
     </header>
 
     <div class="panel">
@@ -294,7 +299,7 @@
             <option value="business">Business (P.IVA)</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" data-brand-req="fastweb">
           <label class="lbl" for="potenza">Potenza contatore <span class="hint">(per offerte a fasce)</span></label>
           <select id="potenza">
             <option value="3">3 kW</option>
@@ -305,7 +310,7 @@
         </div>
       </div>
 
-      <div class="field">
+      <div class="field" data-brand-req="fastweb">
         <label class="toggle" for="convergenza">
           <input type="checkbox" id="convergenza">
           <span class="track"><span class="thumb"></span></span>
@@ -339,7 +344,7 @@
           <label class="lbl" for="kwh">kWh fatturati nel periodo</label>
           <input type="number" id="kwh" min="0" step="0.01">
         </div>
-        <div class="field">
+        <div class="field" data-brand-req="fastweb">
           <label class="lbl" for="consumoAnnuo">Consumo annuo Luce (kWh) <span class="hint">(fasce)</span></label>
           <input type="number" id="consumoAnnuo" min="0" step="1">
         </div>
@@ -354,7 +359,7 @@
           <input type="number" id="quotaFissaLuce" min="0" step="0.01">
         </div>
       </div>
-      <div class="grid2">
+      <div class="grid2" data-brand-req="fastweb">
         <div class="field">
           <label class="lbl" for="totaleBolletta">Totale bolletta Luce del periodo (€) <span class="hint">(fasce)</span></label>
           <input type="number" id="totaleBolletta" min="0" step="0.01">
@@ -385,7 +390,8 @@
         </div>
       </div>
 
-      <!-- FILTRI -->
+      <!-- FILTRI (solo Alperia) -->
+      <div data-brand-req="alperia">
       <div class="section-label">Filtri offerte</div>
       <div class="grid2">
         <div class="field">
@@ -408,8 +414,9 @@
         </div>
       </div>
       <p class="hint">Il <strong>bollino</strong> è un indicatore di margine interno, applicato solo alle offerte <strong>Alperia</strong> e mai mostrato al cliente (né in PDF né su WhatsApp). Il filtro bollino agisce solo sulle offerte Alperia.</p>
+      </div><!-- /filtri Alperia -->
 
-      <button type="submit" class="btn">Confronta tutti i brand</button>
+      <button type="submit" class="btn">Confronta le offerte</button>
       <p class="disclaimer">Calcolo indicativo. Le offerte a prezzo fisso/indicizzato confrontano la sola materia energia/gas; le offerte a fasce (FLAT) confrontano il totale bolletta. IVA, accise, oneri di sistema, trasporto e gestione contatore possono non essere inclusi.</p>
     </form>
 
@@ -504,12 +511,12 @@
 
 /* ---- DATI DI MERCATO CONDIVISI (indici nazionali PUN/PSV per mese) ---- */
 const MONTHS = [
-  { key:"dic-25", label:"Dicembre 2025", pun:0.11500, psv:0.32800 },
-  { key:"gen-26", label:"Gennaio 2026",  pun:0.13300, psv:0.40390 },
   { key:"feb-26", label:"Febbraio 2026", pun:0.11441, psv:0.37680 },
   { key:"mar-26", label:"Marzo 2026",    pun:0.14340, psv:0.55770 },
   { key:"apr-26", label:"Aprile 2026",   pun:0.11950, psv:0.49312 },
   { key:"mag-26", label:"Maggio 2026",   pun:0.11930, psv:0.50240 },
+  { key:"giu-26", label:"Giugno 2026",   pun:0.12570, psv:0.50480 },
+  { key:"lug-26", label:"Luglio 2026",   pun:0.15420, psv:0.60660 },
 ];
 const monthByKey = Object.fromEntries(MONTHS.map(m=>[m.key,m]));
 
@@ -1041,6 +1048,30 @@ function renderBrandChips(){
     }
     row.appendChild(chip);
   });
+  updateHeaderBrands();
+  updateFormFields();
+}
+
+/* Mostra/nasconde i campi del form in base ai brand attivi:
+   ogni elemento con data-brand-req="brandId [brandId...]" appare solo se
+   almeno uno dei brand indicati è attivo. Campi comuni (senza attributo) sempre visibili. */
+function updateFormFields(){
+  const activeIds = new Set(BRANDS.filter(b=>b.enabled && b.active).map(b=>b.id));
+  document.querySelectorAll("[data-brand-req]").forEach(el=>{
+    const reqs = el.getAttribute("data-brand-req").split(/\s+/).filter(Boolean);
+    el.style.display = reqs.some(r=>activeIds.has(r)) ? "" : "none";
+  });
+}
+
+/* Elenco brand attivi sotto il titolo (dinamico) */
+function updateHeaderBrands(){
+  const el=document.getElementById("appBrands");
+  if(!el) return;
+  const attivi = BRANDS.filter(b=>b.enabled && b.active);
+  el.innerHTML = attivi.length
+    ? `<span class="hb-lbl">Brand attivi:</span>` + attivi.map(b=>
+        `<span class="hb-pill"><span class="hb-dot" style="background:${b.color}"></span>${b.label}</span>`).join("")
+    : `<span class="hb-lbl">Nessun brand attivo — selezionane almeno uno qui sotto</span>`;
 }
 
 /* ===================== UI: mesi ===================== */
@@ -1131,9 +1162,11 @@ function runConfronto(skipSpesaCheck){
   // tipo prezzo (fissa/variabile) per il filtro: esplicito su Alperia, dedotto altrove dal badge
   all.forEach(o=>{ if(!o.tipoPrezzo) o.tipoPrezzo = (o.tipoBadge.cls==="b-ind") ? "variabile" : "fissa"; });
 
-  // FILTRI: tipo offerta (tutti i brand) + bollino (solo Alperia)
-  const tipoF = document.getElementById("tipoOffertaFiltro")?.value || "tutte";
-  const bollinoF = document.getElementById("bollinoFiltro")?.value || "tutti";
+  // FILTRI (attivi solo se Alperia è selezionato: la sezione filtri è dedicata ad Alperia).
+  // Se Alperia non è attivo restano neutri, così valori residui dei select nascosti non filtrano nulla.
+  const alperiaActive = activeBrands.some(b=>b.id==="alperia");
+  const tipoF = alperiaActive ? (document.getElementById("tipoOffertaFiltro")?.value || "tutte") : "tutte";
+  const bollinoF = alperiaActive ? (document.getElementById("bollinoFiltro")?.value || "tutti") : "tutti";
   all = all.filter(o=>{
     if(tipoF!=="tutte" && o.tipoPrezzo!==tipoF) return false;
     if(bollinoF!=="tutti" && o.brandId==="alperia"){
