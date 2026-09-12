@@ -59,12 +59,16 @@
   /* brand toggles */
   .brand-row{display:flex; gap:10px; flex-wrap:wrap}
   .brand-chip{
-    display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:999px;
-    border:2px solid var(--line); background:#fff; cursor:pointer; font-weight:700; font-size:14px;
-    user-select:none; transition:.15s;
+    display:flex; align-items:center; gap:10px; padding:9px 14px; border-radius:12px;
+    border:2px solid var(--line); background:#f4f6fb; cursor:pointer; font-weight:700; font-size:13px;
+    color:var(--muted); user-select:none; transition:.15s;
   }
-  .brand-chip .dot{width:12px; height:12px; border-radius:50%}
-  .brand-chip.active{color:#fff}
+  .brand-chip .brand-logo{height:22px; width:auto; max-width:92px; object-fit:contain; display:block;
+    filter:grayscale(1); opacity:.45; transition:.15s}
+  .brand-chip.active{background:#fff; color:var(--ink); box-shadow:0 3px 12px rgba(31,37,69,.10)}
+  .brand-chip.active .brand-logo{filter:none; opacity:1}
+  .brand-chip .brand-check{font-weight:900; font-size:14px}
+  .brand-chip:hover{border-color:#b9bed0}
   .brand-chip.disabled{opacity:.5; cursor:not-allowed}
   .brand-chip input{display:none}
 
@@ -318,6 +322,23 @@
         </label>
       </div>
 
+      <div class="grid2" data-brand-req="sorgenia">
+        <div class="field">
+          <label class="lbl" for="annoContrattuale">Anno contrattuale <span class="hint">(Sorgenia)</span></label>
+          <select id="annoContrattuale">
+            <option value="1">1° anno di fornitura</option>
+            <option value="2">Dal 13° mese</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="toggle" for="contatoreOrario" style="margin-top:24px">
+            <input type="checkbox" id="contatoreOrario">
+            <span class="track"><span class="thumb"></span></span>
+            <span>Contatore orario <span class="hint">(Sorgenia)</span></span>
+          </label>
+        </div>
+      </div>
+
       <!-- PERIODO -->
       <div class="field">
         <label class="toggle" for="periodiDiversi">
@@ -511,7 +532,7 @@
 
 /* ---- DATI DI MERCATO CONDIVISI (indici nazionali PUN/PSV per mese) ---- */
 const MONTHS = [
-  { key:"mar-26", label:"Marzo 2026",    pun:0.14340, psv:0.55770 },
+  { key:"mar-26", label:"Marzo 2026",    pun:0.14340, psv:0.55833 },
   { key:"apr-26", label:"Aprile 2026",   pun:0.11950, psv:0.49312 },
   { key:"mag-26", label:"Maggio 2026",   pun:0.11930, psv:0.50240 },
   { key:"giu-26", label:"Giugno 2026",   pun:0.12570, psv:0.50480 },
@@ -526,6 +547,24 @@ function avg(keys, prop){
   keys.forEach(k=>{ const m=monthByKey[k]; if(m){ s+=m[prop]; c++; } });
   return c ? s/c : 0;
 }
+/* Un'offerta sparisce dal confronto quando la data di sottoscrivibilità è passata */
+function offertaScaduta(off){
+  if(!off || !off.scadenza) return false;
+  const p = String(off.scadenza).split("/");
+  if(p.length !== 3) return false;
+  const fine = new Date(+p[2], +p[1]-1, +p[0]);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return fine < oggi;
+}
+function giorniAllaScadenza(off){
+  if(!off || !off.scadenza) return null;
+  const p = String(off.scadenza).split("/");
+  if(p.length !== 3) return null;
+  const fine = new Date(+p[2], +p[1]-1, +p[0]);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return Math.round((fine - oggi) / 86400000);
+}
+
 function monthLabels(keys){ return keys.map(k=>monthByKey[k]?.label || k).join(", "); }
 
 /* ---- UTILS ---- */
@@ -554,12 +593,12 @@ const ACEA = {
       luce:[
         { nome:"ACEA SPRINT LUCE", tipo:"ind", spread:0.0145, canone:10 },
         { nome:"ACEA FLEX LUCE",   tipo:"ind", spread:0.03,   canone:9, marginalita:true },
-        { nome:"ACEA FIX LUCE",    tipo:"fix", raw:0.099,      canone:9.25 },
+        { nome:"ACEA FIX LUCE",    tipo:"fix", raw:0.125,      canone:12 },
       ],
       gas:[
         { nome:"ACEA SPRINT GAS", tipo:"ind", spread:0.075, canone:10 },
         { nome:"ACEA FLEX GAS",   tipo:"ind", spread:0.148, canone:9, marginalita:true },
-        { nome:"ACEA FIX GAS",    tipo:"fix", raw:0.40,     canone:9.25 },
+        { nome:"ACEA FIX GAS",    tipo:"fix", raw:0.58,     canone:12 },
       ],
     },
     business:{
@@ -626,19 +665,42 @@ const FASTWEB = {
   id:"fastweb", label:"Fastweb Energia", color:"#7c70b4",
   DISP:0.011,
   // luce a consumo
-  DOM_FIX_RAW:0.180, DOM_FLEX_SPREAD:0.026, DOM_CANONE_LISTINO:13, DOM_CANONE_CONV:8,
-  BIZ_FIX_RAW:0.160, BIZ_FLEX_SPREAD:0.030, BIZ_CANONE_LISTINO:20, BIZ_CANONE_CONV:10,
+  DOM_FIX_RAW:0.180, DOM_FLEX_SPREAD:0.026, DOM_CANONE_LISTINO:13,
+  BIZ_FIX_RAW:0.160, BIZ_FLEX_SPREAD:0.030, BIZ_CANONE_LISTINO:20,
   // gas
   GAS_DOM_SPREAD:0.10, GAS_BIZ_SPREAD:0.13,
-  GAS_DOM_CANONE_LISTINO:15, GAS_DOM_CANONE_CONV:4,
-  GAS_BIZ_CANONE_LISTINO:20, GAS_BIZ_CANONE_CONV:10,
+  GAS_DOM_CANONE_LISTINO:15, GAS_BIZ_CANONE_LISTINO:20,
   // FLAT a fasce (solo domestico)
   TIER_NAMES:["START","LIGHT","PRO","MAXI","ULTRA"],
   THRESHOLDS:[800,1500,2500,3500,4500],
-  BASE_LISTINO_3KW:[41,56,76,91,106],
-  CONVERGENCE_DISCOUNT:11, POWER_STEP_PRICE:5,
+  FLAT_LISTINO_LEGACY:[41,56,76,91,106],   // fino al 25/07/2026
+  FLAT_LISTINO_NEW:[47,64,87,109,130],     // dal 26/07/2026 (definitivi)
+  POWER_STEP_PRICE:5,
   TIER_EXTRA:[0.30,0.27,0.21,0.20,0.13],
   ULTRA_TOLERANCE:500,
+
+  /* ---- Logiche a decorrenza: restano corrette nel tempo ----
+     26/07/2026: nuovo listino FLAT (validità 24 mesi invece di 36)
+     28/08/2026: nuove condizioni — convergenza FLAT 15€, domestico FIX/FLEX -7€,
+                 business FIX/FLEX -20€ (canone 0), gas domestico commercializzazione 0,
+                 gas business -20€ (canone 0), durata business 24 mesi, scadenze per offerta */
+  _flatNewActive(){ return new Date() >= new Date(2026,6,26); },
+  _newOffersActive(){ return new Date() >= new Date(2026,7,28); },
+  flatPrices(){ return this._flatNewActive() ? this.FLAT_LISTINO_NEW : this.FLAT_LISTINO_LEGACY; },
+  flatValidita(){ return this._flatNewActive() ? "24 mesi" : "36 mesi"; },
+  convergenceDiscount(){ return this._newOffersActive() ? 15 : 11; },
+  domCanoneConv(){ return this._newOffersActive() ? this.DOM_CANONE_LISTINO-7 : 8; },
+  bizCanoneConv(){ return this._newOffersActive() ? this.BIZ_CANONE_LISTINO-20 : 10; },
+  gasDomCanoneConv(){ return this._newOffersActive() ? 0 : 4; },
+  gasBizCanoneConv(){ return this._newOffersActive() ? this.GAS_BIZ_CANONE_LISTINO-20 : 10; },
+  bizValidita(){ return this._newOffersActive() ? "24 mesi" : "36 mesi (anche Multisito)"; },
+  EXPIRY_LEGACY:"16 giugno",
+  EXPIRY_NEW:{ flat:"11 settembre", fix:"11 settembre", flex:"25 settembre",
+               businessFix:"11 settembre", businessFlex:"25 settembre",
+               gasDom:"25 settembre", gasBiz:"25 settembre" },
+  expiry(key){ return this._newOffersActive() ? (this.EXPIRY_NEW[key]||this.EXPIRY_LEGACY) : this.EXPIRY_LEGACY; },
+  // Welcome Bonus Luce domestica 15€ (3 rate da 5€): finestra 10/07/2026 → 27/08/2026
+  welcomeBonusActive(){ const t=new Date(); return t>=new Date(2026,6,10) && t<=new Date(2026,7,27,23,59,59); },
 
   compute(input){
     const out=[];
@@ -649,12 +711,12 @@ const FASTWEB = {
     if(input.luce.kwh>0 && input.luce.mesi.length){
       const pun = avg(input.luce.mesi,"pun");
       const nMesi = input.luce.mesi.length;
-      const canone = biz ? (conv?this.BIZ_CANONE_CONV:this.BIZ_CANONE_LISTINO)
-                         : (conv?this.DOM_CANONE_CONV:this.DOM_CANONE_LISTINO);
+      const canone = biz ? (conv?this.bizCanoneConv():this.BIZ_CANONE_LISTINO)
+                         : (conv?this.domCanoneConv():this.DOM_CANONE_LISTINO);
       const fixRaw  = biz ? this.BIZ_FIX_RAW : this.DOM_FIX_RAW;
       const flexSpr = biz ? this.BIZ_FLEX_SPREAD : this.DOM_FLEX_SPREAD;
       const prefix = biz ? "FASTWEB LUCE BUSINESS " : "FASTWEB LUCE ";
-      const validitaLuce = biz ? "36 mesi (anche Multisito)" : "12 mesi";
+      const validitaLuce = biz ? this.bizValidita() : "12 mesi";
 
       // FIX
       [["FIX", fixRaw+this.DISP, "fix"],
@@ -674,9 +736,11 @@ const FASTWEB = {
             {label:`Quota fissa € ${money(canone)}/mese × ${nMesi}${conv?" (sconto convergenza)":""}`, value:"€ "+money(fisso)},
             {label:"Totale offerta", value:"€ "+money(tot), tot:true},
           ],
-          note: kind==="fix"
+          note: (kind==="fix"
             ? `Prezzo bloccato ${money(fixRaw)} + disp. ${money(this.DISP)} = ${money(pk)} €/kWh`
-            : `PUN medio ${pun.toFixed(4)} + spread ${money(flexSpr)} + disp. ${money(this.DISP)} €/kWh`,
+            : `PUN medio ${pun.toFixed(4)} + spread ${money(flexSpr)} + disp. ${money(this.DISP)} €/kWh`)
+            + ` · Scadenza offerta: ${this.expiry(biz ? (kind==="fix"?"businessFix":"businessFlex") : (kind==="fix"?"fix":"flex"))}`
+            + (!biz && this.welcomeBonusActive() ? " · 🎁 Welcome Bonus 15€ (3 rate da 5€) per nuovi clienti" : ""),
           validita:validitaLuce,
         });
       });
@@ -698,8 +762,8 @@ const FASTWEB = {
       const psv = avg(input.gas.mesi,"psv");
       const nMesi = input.gas.mesi.length;
       const spread = biz ? this.GAS_BIZ_SPREAD : this.GAS_DOM_SPREAD;
-      const canone = biz ? (conv?this.GAS_BIZ_CANONE_CONV:this.GAS_BIZ_CANONE_LISTINO)
-                         : (conv?this.GAS_DOM_CANONE_CONV:this.GAS_DOM_CANONE_LISTINO);
+      const canone = biz ? (conv?this.gasBizCanoneConv():this.GAS_BIZ_CANONE_LISTINO)
+                         : (conv?this.gasDomCanoneConv():this.GAS_DOM_CANONE_LISTINO);
       const energia = input.gas.smc*(psv+spread);
       const fisso = canone*nMesi;
       const tot = energia+fisso;
@@ -715,7 +779,7 @@ const FASTWEB = {
           {label:`Commercializz. € ${money(canone)}/mese × ${nMesi}${conv?" (sconto convergenza)":""}`, value:"€ "+money(fisso)},
           {label:"Totale offerta", value:"€ "+money(tot), tot:true},
         ],
-        note:`PSV medio ${psv.toFixed(4)} + spread ${money(spread)} €/Smc · attivabile in DUAL o upsell su cliente Fastweb Luce`,
+        note:`PSV medio ${psv.toFixed(4)} + spread ${money(spread)} €/Smc · attivabile in DUAL o upsell su cliente Fastweb Luce · Scadenza offerta: ${this.expiry(biz?"gasBiz":"gasDom")}`,
         validita:"12 mesi",
         requiresLuce:true,
       });
@@ -727,8 +791,8 @@ const FASTWEB = {
     let inc = 0;
     if(String(potenza)==="4.5") inc=this.POWER_STEP_PRICE;
     else if(String(potenza)==="6") inc=this.POWER_STEP_PRICE*2;
-    const listino = this.BASE_LISTINO_3KW[tierIdx]+inc;
-    return conv ? listino-this.CONVERGENCE_DISCOUNT : listino;
+    const listino = this.flatPrices()[tierIdx]+inc;
+    return conv ? listino-this.convergenceDiscount() : listino;
   },
   _bestFlat(input, conv){
     const tiers = [0,1,2,3,4].map(t=>{
@@ -753,7 +817,7 @@ const FASTWEB = {
       servizio:"luce", tipoBadge:{text:"A Fasce / Canone",cls:"b-fasce"},
       base:"totale", baseLabel:"totale bolletta",
       periodo:monthLabels(input.luce.mesi), nMesi:input.luce.mesi.length,
-      costoAttuale:input.totaleBolletta, validita:"36 mesi",
+      costoAttuale:input.totaleBolletta, validita:FASTWEB.flatValidita(),
       flat:{
         tiers, bestT, currentT:bestT, conv,
         consumoAnnuo:input.consumoAnnuo, numMesi:input.luce.mesi.length,
@@ -829,7 +893,7 @@ function applyFlatTier(o, t){
   } else {
     noteAnnua = ` Costo annuo stimato con l'offerta: € ${money(tv.totalAnnual)}.`;
   }
-  o.note = `Le offerte a fasce si valutano sull'INTERO ANNO. Sul periodo selezionato: ${periodDelta>=0?"risparmio di € "+money(periodDelta):"offerta più alta di € "+money(Math.abs(periodDelta))}.${noteAnnua} Validità 36 mesi.`;
+  o.note = `Le offerte a fasce si valutano sull'INTERO ANNO. Sul periodo selezionato: ${periodDelta>=0?"risparmio di € "+money(periodDelta):"offerta più alta di € "+money(Math.abs(periodDelta))}.${noteAnnua} Validità ${FASTWEB.flatValidita()} · Scadenza offerta: ${FASTWEB.expiry("flat")}.`;
   o.dettaglio = d;
 }
 
@@ -912,54 +976,44 @@ const ALPERIA = {
   id:"alperia", label:"Alperia", color:"#7CB342",
   DISP_LUCE:0.02,
   OFFERTE:[
-    // DOMESTICO · FISSA · LUCE
-    { nome:"Direct",   cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.0990, pcv:[109] },
-    { nome:"Safety",   cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1360, pcv:[97]  },
-    { nome:"Pure",     cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1113, pcv:[144] },
-    { nome:"Start",    cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1385, pcv:[72]  },
-    { nome:"Standard", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1180, pcv:[108] },
-    { nome:"Clear",    cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1260, pcv:[145] },
-    { nome:"Premium",  cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1450, pcv:[157] },
-    // DOMESTICO · FISSA · GAS
-    { nome:"Smile Start", cliente:"domestico", tipo:"fissa", fornitura:"gas", prezzoFisso:0.3989, pcv:[144] },
-    // DOMESTICO · INDEX · LUCE
-    { nome:"Terzo Tempo",   cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.010],  pcv:[121,121,61] },
-    { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.010],  pcv:[109,97,85]  },
-    { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.000],  pcv:[145] },
-    { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.027],  pcv:[73]  },
-    { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0135], pcv:[109] },
-    { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.024],  pcv:[120] },
-    { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.000],  pcv:[181] },
-    { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.020],  pcv:[157] },
-    { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.033],  pcv:[181] },
-    { nome:"Home Plus",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0297], pcv:[157] },
-    // DOMESTICO · INDEX · GAS
-    { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.11],      pcv:[108,96,84] },
-    { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.08],      pcv:[90]  },
-    { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16],      pcv:[72]  },
-    { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.12],      pcv:[108] },
-    { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16],      pcv:[120] },
-    { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.08],      pcv:[180] },
-    { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.12,0.16], pcv:[156] },
-    { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16],      pcv:[180] },
-    // BUSINESS · FISSA · LUCE (F1/F2/F3)
-    { nome:"Caldaro", cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.129,F2:0.139,F3:0.129}, pcv:[109] },
-    { nome:"Braies",  cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.129,F2:0.147,F3:0.126}, pcv:[97]  },
-    { nome:"Neves",   cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.134,F2:0.147,F3:0.122}, pcv:[144] },
-    // BUSINESS · INDEX · LUCE
-    { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0079],        pcv:[149] },
-    { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0119],        pcv:[149] },
-    { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0139],        pcv:[149] },
-    { nome:"Resia",   cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0181],        pcv:[149] },
-    { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0216],        pcv:[149] },
-    { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0132,0.0216], pcv:[199] },
-    // BUSINESS · INDEX · GAS
-    { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.0990],        pcv:[149] },
-    { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1190],        pcv:[149] },
-    { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390],        pcv:[149] },
-    { nome:"Resia",   cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1500],        pcv:[149] },
-    { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1790],        pcv:[149] },
-    { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390,0.1790], pcv:[189] },
+    // ---- DOMESTICO · FISSA · LUCE (famiglia Smile + Direct Energy) ----
+    { nome:"Smile Safety",   cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1600, pcv:[97],  scadenza:"21/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0200" },
+    { nome:"Smile Standard", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1550, pcv:[121], scadenza:"21/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0230" },
+    { nome:"Smile Clear",    cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1630, pcv:[145], scadenza:"21/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0100" },
+    { nome:"Smile Premium",  cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1810, pcv:[157], scadenza:"21/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0300" },
+    { nome:"Direct Energy",  cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1090, pcv:[109], scadenza:"21/09/2026", nota:"Prezzo bloccato 60 mesi, poi PUN + 0,0200" },
+    // ---- DOMESTICO · INDEX · LUCE ----
+    { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0000],        pcv:[145],        scadenza:"10/10/2026" },
+    { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0000],        pcv:[181],        scadenza:"10/10/2026" },
+    { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0100],        pcv:[109,97,85],  scadenza:"10/10/2026" },
+    { nome:"Terzo Tempo",   cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0100],        pcv:[121,121,61], scadenza:"10/10/2026" },
+    { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0135],        pcv:[109],        scadenza:"10/10/2026" },
+    { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0200,0.0300], pcv:[157],        scadenza:"10/10/2026" },
+    { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0240],        pcv:[121],        scadenza:"10/10/2026" },
+    { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0270],        pcv:[73],         scadenza:"10/10/2026" },
+    { nome:"Home Plus",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0270],        pcv:[157],        scadenza:"10/10/2026" },
+    { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0300],        pcv:[181],        scadenza:"10/10/2026" },
+    // ---- DOMESTICO · INDEX · GAS ----
+    { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.0800],         pcv:[90],        scadenza:"10/10/2026" },
+    { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.0800],         pcv:[180],       scadenza:"10/10/2026" },
+    { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1100],         pcv:[108,96,84], scadenza:"10/10/2026" },
+    { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1200],         pcv:[108],       scadenza:"10/10/2026" },
+    { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1200,0.1600],  pcv:[156],       scadenza:"10/10/2026" },
+    { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1600],         pcv:[120],       scadenza:"10/10/2026" },
+    { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1600],         pcv:[72],        scadenza:"10/10/2026" },
+    { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1600],         pcv:[180],       scadenza:"10/10/2026" },
+    // ---- BUSINESS · INDEX · LUCE ----
+    { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0079],        pcv:[149], scadenza:"10/10/2026" },
+    { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0119],        pcv:[132], scadenza:"10/10/2026" },
+    { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0139],        pcv:[149], scadenza:"10/10/2026" },
+    { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0156],        pcv:[149], scadenza:"10/10/2026" },
+    { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"luce", spread:[0.0072,0.0156], pcv:[199], scadenza:"10/10/2026" },
+    // ---- BUSINESS · INDEX · GAS (spread comprensivo di QAC 0,0800 e compensazione CO2 0,0190) ----
+    { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.0990],        pcv:[149], scadenza:"10/10/2026" },
+    { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1190],        pcv:[132], scadenza:"10/10/2026" },
+    { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390],        pcv:[149], scadenza:"10/10/2026" },
+    { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1790],        pcv:[149], scadenza:"10/10/2026" },
+    { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390,0.1790], pcv:[189], scadenza:"10/10/2026" },
   ],
   /* BOLLINI (compenso interno) — chiave "<nome>__<tipo>__<fornitura>", valori "verde"|"giallo"|"rosso".
      Da compilare quando assegnati. Non compare MAI nei documenti al cliente. */
@@ -976,7 +1030,7 @@ const ALPERIA = {
       if(!(consumo>0) || !svc.mesi.length) return;
       const idx = avg(svc.mesi, idxProp);
       const nMesi = svc.mesi.length;
-      this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio).forEach(o=>{
+      this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio && !offertaScaduta(o)).forEach(o=>{
         let prezzo, note, tipoBadge, tipoPrezzo;
         if(o.tipo==="fissa"){
           let base=o.prezzoFisso, fasceNote="";
@@ -1000,6 +1054,8 @@ const ALPERIA = {
         const fisso = canoneMese*nMesi;
         const tot = energia+fisso;
         if(o.pcv.length>1) note += ` · PCV per anno: ${o.pcv.map((v,i)=>`${i+1}° € ${v}`).join(", ")}`;
+        if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
+        if(o.nota) note += ` · ⚠ ${o.nota}`;
         const bollino = this.bolliniOfferte[this._key(o)] || null;
         out.push({
           brandId:this.id, brandLabel:this.label, brandColor:this.color,
@@ -1023,14 +1079,121 @@ const ALPERIA = {
   },
 };
 
+/* ===================== BRAND: SORGENIA ===================== */
+/* Modello Sorgenia (dal COMPARATORE SORGENIA): tutte le offerte sono INDICIZZATE.
+   - fee[0] = 1° anno, fee[1] = dal 13° mese. I valori sono NETTO PERDITE
+     (la CTE espone il lordo: feeCte = fee x 1,10 sulla luce).
+   - pcv = quota di commercializzazione €/anno; sconto[] = sconto fedeltà sul pcv (domestiche)
+   - quotaVar = quota fissa espressa a consumo €/Smc (gas business)
+   - orario = riduzione fee (lorda) se il cliente ha contatore orario
+   - luce: + dispacciamento 0,02 €/kWh; gas: nessun dispacciamento */
+const SORGENIA = {
+  id:"sorgenia", label:"Sorgenia", color:"#1C3155",
+  DISP_LUCE:0.02,
+  OFFERTE:[
+    // ---- BUSINESS · LUCE · BORSA PIÙ SMART ----
+    { nome:"Borsa Più Smart Corporate Premium", cliente:"business", fornitura:"luce", fee:[0.0034,0.0054], feeCte:[0.00374,0.00594], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
+    { nome:"Borsa Più Smart Corporate",         cliente:"business", fornitura:"luce", fee:[0.0048,0.0068], feeCte:[0.00528,0.00748], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
+    { nome:"Borsa Più Smart Premium",           cliente:"business", fornitura:"luce", fee:[0.0064,0.0084], feeCte:[0.00704,0.00924], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
+    { nome:"Borsa Più Smart Plus",              cliente:"business", fornitura:"luce", fee:[0.0074,0.0094], feeCte:[0.00814,0.01034], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
+    { nome:"Borsa Più Smart Light Plus",        cliente:"business", fornitura:"luce", fee:[0.0094,0.0114], feeCte:[0.01034,0.01254], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
+    { nome:"Borsa Più Smart Light",             cliente:"business", fornitura:"luce", fee:[0.0119,0.0139], feeCte:[0.01309,0.01529], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
+    // ---- BUSINESS · GAS · IMPRESA GAS SMART ----
+    { nome:"Impresa Gas Smart Premium",    cliente:"business", fornitura:"gas", fee:[0.024,0.034], pcv:79.2, quotaVar:0.00794, scadenza:"30/09/2026", nota:"Valori riferiti a PCS 38,52 MJ/Smc, poi adeguati al PCS effettivo della località." },
+    { nome:"Impresa Gas Smart Plus",       cliente:"business", fornitura:"gas", fee:[0.04,0.05],   pcv:79.2, quotaVar:0.00794, scadenza:"30/09/2026", nota:"Valori riferiti a PCS 38,52 MJ/Smc, poi adeguati al PCS effettivo della località." },
+    { nome:"Impresa Gas Smart Light Plus", cliente:"business", fornitura:"gas", fee:[0.05,0.06],   pcv:79.2, quotaVar:0.00794, scadenza:"30/09/2026", nota:"Valori riferiti a PCS 38,52 MJ/Smc, poi adeguati al PCS effettivo della località." },
+    { nome:"Impresa Gas Smart Light",      cliente:"business", fornitura:"gas", fee:[0.07,0.08],   pcv:79.2, quotaVar:0.00794, scadenza:"30/09/2026", nota:"Valori riferiti a PCS 38,52 MJ/Smc, poi adeguati al PCS effettivo della località." },
+    // ---- DOMESTICO · NEXT ENERGY ----
+    { nome:"Next Energy Puntuale", cliente:"domestico", fornitura:"luce", fee:[0.0205,0.0406], feeCte:[0.0225,0.0447], pcv:120, sconto:[0.05,0.10], orario:0.007, scadenza:"30/09/2026", nota:"Solo POD senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta. Dal 13° mese si aggiunge l'Indice GO fatturato a parte." },
+    { nome:"Next Energy Sunlight", cliente:"domestico", fornitura:"gas",  fee:[0.0915,0.1915], pcv:120, sconto:[0.05,0.10], scadenza:"30/09/2026", nota:"Solo PDR senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta." },
+  ],
+  compute(input){
+    const out=[];
+    const cli = input.tipoCliente;
+    const annoIdx = input.sorgeniaAnno === 2 ? 1 : 0;
+    const orario = !!input.contatoreOrario;
+    const DISP = this.DISP_LUCE;
+
+    const build=(servizio, svc, idxProp)=>{
+      const consumo = servizio==="luce" ? svc.kwh : svc.smc;
+      if(!(consumo>0) || !svc.mesi.length) return;
+      const idx = avg(svc.mesi, idxProp);
+      const nMesi = svc.mesi.length;
+
+      this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio && !offertaScaduta(o)).forEach(o=>{
+        // Fee dell'anno contrattuale, con eventuale riduzione per contatore orario
+        let fee = o.fee[annoIdx];
+        let notaOrario = "";
+        if(o.orario && orario && servizio==="luce"){
+          const riduzioneNetta = o.orario/1.10;   // la riduzione CTE è sul valore lordo perdite
+          fee = Math.max(0, fee - riduzioneNetta);
+          notaOrario = ` · Contatore orario: fee ridotta di ${o.orario.toFixed(4)} €/kWh lordo (${riduzioneNetta.toFixed(4)} netto)`;
+        }
+
+        let energia, note;
+        if(servizio==="luce"){
+          energia = consumo*(idx + fee + DISP);
+          note = `PUN medio ${idx.toFixed(4)} + fee ${fee.toFixed(4)} €/kWh (netto perdite`
+               + (o.feeCte ? `, CTE ${o.feeCte[annoIdx].toFixed(5)} lordo` : "")
+               + `) + disp. ${DISP.toFixed(4)} €/kWh${notaOrario}`;
+        } else {
+          energia = consumo*(idx + fee);
+          note = `PSV medio ${idx.toFixed(4)} + fee ${fee.toFixed(4)} €/Smc`;
+        }
+
+        // Quota di commercializzazione, con sconto fedeltà per le domestiche
+        let pcvAnnuo = o.pcv;
+        if(o.sconto){
+          const sc = o.sconto[annoIdx];
+          pcvAnnuo = o.pcv*(1-sc);
+          note += ` · Sconto fedeltà ${(sc*100).toFixed(0)}% sulla commercializzazione (${o.pcv.toFixed(2)} → ${pcvAnnuo.toFixed(2)} €/anno)`;
+        }
+        const canoneMese = pcvAnnuo/12;
+        const fisso = canoneMese*nMesi;
+
+        // Gas business: quota fissa espressa anche a consumo
+        const quotaVarCost = o.quotaVar ? consumo*o.quotaVar : 0;
+        const tot = energia + fisso + quotaVarCost;
+
+        if(annoIdx===0) note += ` · Dal 13° mese la fee passa a ${o.fee[1].toFixed(4)}`;
+        if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
+        if(o.nota) note += ` · ⚠ ${o.nota}`;
+
+        const det=[
+          {label: servizio==="gas"?"Spesa gas naturale":"Spesa materia energia", value:"€ "+money(energia)},
+          {label:`Quota commercializzazione € ${money(canoneMese)}/mese × ${nMesi}`, value:"€ "+money(fisso)},
+        ];
+        if(quotaVarCost>0) det.push({label:`Quota fissa a consumo ${o.quotaVar.toFixed(5)} €/Smc × ${consumo}`, value:"€ "+money(quotaVarCost)});
+        det.push({label:"Totale offerta", value:"€ "+money(tot), tot:true});
+
+        out.push({
+          brandId:this.id, brandLabel:this.label, brandColor:this.color,
+          servizio, nome:"SORGENIA "+o.nome,
+          tipoBadge:{text: servizio==="gas"?"Indicizzata PSV":"Indicizzata PUN", cls:"b-ind"},
+          base:"materia", baseLabel: servizio==="gas" ? "spesa materia gas" : "spesa materia energia",
+          periodo:monthLabels(svc.mesi), nMesi,
+          costoAttuale:svc.attuale, costoOfferta:tot, risparmio:svc.attuale-tot,
+          tipoPrezzo:"variabile",
+          dettaglio:det, note,
+          validita: annoIdx===0 ? "fee 1° anno" : "fee dal 13° mese",
+        });
+      });
+    };
+    build("luce", input.luce, "pun");
+    build("gas",  input.gas,  "psv");
+    return out;
+  },
+};
+
+
 const FUTURO_1 = { id:"futuro1", label:"Brand 4", color:"#9aa0b5", enabled:false, compute(){ return []; } };
 
 /* ===================== REGISTRO BRAND ===================== */
 const BRANDS = [
-  { ...ACEA,    enabled:true,  active:true  },
-  { ...FASTWEB, enabled:true,  active:true  },
-  { ...ALPERIA, enabled:true,  active:true  },
-  { ...FUTURO_1, active:false },
+  { ...ACEA,     enabled:true, active:true, logo:"assets/logos/acea.png"     },
+  { ...FASTWEB,  enabled:true, active:true, logo:"assets/logos/fastweb.png"  },
+  { ...ALPERIA,  enabled:true, active:true, logo:"assets/logos/alperia.png"  },
+  { ...SORGENIA, enabled:true, active:true, logo:"assets/logos/sorgenia.png" },
 ];
 
 /* ===================== UI: brand chips ===================== */
@@ -1040,9 +1203,11 @@ function renderBrandChips(){
   BRANDS.forEach((b,i)=>{
     const chip=document.createElement("label");
     chip.className="brand-chip"+(b.active?" active":"")+(b.enabled?"":" disabled");
-    if(b.active) chip.style.background=b.color, chip.style.borderColor=b.color;
-    chip.innerHTML=`<span class="dot" style="background:${b.active?'#fff':b.color}"></span>
-      <span>${b.label}${b.enabled?"":" · Prossimamente"}</span>`;
+    chip.title = (b.active?"Disattiva ":"Attiva ")+b.label;
+    if(b.active) chip.style.borderColor=b.color;
+    chip.innerHTML=(b.logo?`<img class="brand-logo" src="${b.logo}" alt="${b.label}">`:"")
+      + `<span class="brand-name">${b.label}${b.enabled?"":" · Prossimamente"}</span>`
+      + `<span class="brand-check" style="color:${b.color}">${b.active?"✓":"+"}</span>`;
     if(b.enabled){
       chip.onclick=()=>{ BRANDS[i].active=!BRANDS[i].active; renderBrandChips(); };
     }
@@ -1108,6 +1273,8 @@ function gatherInput(){
     nome: document.getElementById("nome").value.trim(),
     tipoCliente: document.getElementById("tipoCliente").value,
     convergenza: document.getElementById("convergenza").checked,
+    sorgeniaAnno: parseInt(document.getElementById("annoContrattuale")?.value || "1", 10),
+    contatoreOrario: !!document.getElementById("contatoreOrario")?.checked,
     potenza: document.getElementById("potenza").value,
     consumoAnnuo: num("consumoAnnuo"),
     totaleBolletta: num("totaleBolletta"),
@@ -1582,14 +1749,14 @@ function renderRiepilogo(){
       <button class="chip ${riepPower==='6'?'active':''}" onclick="riepSetPower('6')">6 kW</button>
     </div>`;
 
-  const cDom=cli?F.DOM_CANONE_CONV:F.DOM_CANONE_LISTINO;
-  const cBiz=cli?F.BIZ_CANONE_CONV:F.BIZ_CANONE_LISTINO;
-  const cGasDom=cli?F.GAS_DOM_CANONE_CONV:F.GAS_DOM_CANONE_LISTINO;
-  const cGasBiz=cli?F.GAS_BIZ_CANONE_CONV:F.GAS_BIZ_CANONE_LISTINO;
+  const cDom=cli?F.domCanoneConv():F.DOM_CANONE_LISTINO;
+  const cBiz=cli?F.bizCanoneConv():F.BIZ_CANONE_LISTINO;
+  const cGasDom=cli?F.gasDomCanoneConv():F.GAS_DOM_CANONE_LISTINO;
+  const cGasBiz=cli?F.gasBizCanoneConv():F.GAS_BIZ_CANONE_LISTINO;
   const who=cli?"cliente":"non cliente";
 
   body.innerHTML=`
-    <div class="riep-head"><div>OFFERTE FLAT (canone fisso) — validità 36 mesi</div>${seg}</div>
+    <div class="riep-head"><div>OFFERTE FLAT (canone fisso) — validità ${F.flatValidita()}</div>${seg}</div>
     <div class="riep-head" style="background:#9b91d6">${powerSeg}</div>
     <div class="tier-cards">${cards}</div>
 
@@ -1612,11 +1779,11 @@ function renderRiepilogo(){
     <div class="riep-block">
       <div class="t">Fastweb Luce Business Fix</div>
       <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>€${money(F.BIZ_FIX_RAW)}/kWh</strong> (+ disp. €${money(F.DISP)} → ${money(F.BIZ_FIX_RAW+F.DISP)} €/kWh)</div>
-      <div class="hint">Validità 36 mesi (anche Multisito)</div>
+      <div class="hint">Validità ${F.bizValidita()}</div>
       <div class="div"></div>
       <div class="t">Fastweb Luce Business Flex</div>
       <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>PUN + €${money(F.BIZ_FLEX_SPREAD)}/kWh</strong> (+ disp. €${money(F.DISP)})</div>
-      <div class="hint">Validità 36 mesi (anche Multisito)</div>
+      <div class="hint">Validità ${F.bizValidita()}</div>
       <div class="div"></div>
       <div class="t">Fastweb Gas Flex Business</div>
       <div class="ln">Commercializz. <strong>€${cGasBiz}/mese</strong> (${who}) + Gas <strong>PSV + €${money(F.GAS_BIZ_SPREAD)}/Smc</strong></div>
