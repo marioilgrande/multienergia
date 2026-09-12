@@ -69,6 +69,14 @@
   .brand-chip.active .brand-logo{filter:none; opacity:1}
   .brand-chip .brand-check{font-weight:900; font-size:14px}
   .brand-chip:hover{border-color:#b9bed0}
+  .brand-chip.locked{border-style:dashed; background:#f7f8fb}
+  .brand-chip.locked .brand-logo{filter:grayscale(1); opacity:.3}
+  .brand-chip.locked .brand-name{color:#8b93b0}
+  #brandLockRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+  .lock-link{background:none; border:none; padding:0; color:var(--muted); font-size:12px;
+    font-weight:700; cursor:pointer; text-decoration:underline; font-family:inherit}
+  .lock-link:hover{color:var(--ink)}
+  .pin-errore{margin-top:8px; font-size:13px; font-weight:700; color:var(--ko)}
   .brand-chip.disabled{opacity:.5; cursor:not-allowed}
   .brand-chip input{display:none}
 
@@ -278,6 +286,7 @@
     <div class="panel">
       <h2>Brand da confrontare</h2>
       <div class="brand-row" id="brandRow"></div>
+      <div id="brandLockRow"></div>
       <p class="hint">Attiva i brand da includere nel confronto. I segnaposto "Prossimamente" sono pronti per i futuri brand.</p>
     </div>
 
@@ -446,6 +455,31 @@
       <div id="resultsBody"></div>
     </div>
 
+  </div>
+
+  <!-- MODALE: codice di sblocco brand -->
+  <div id="pinModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="width:min(460px,100%)">
+      <div class="modal-header">
+        <h3>🔒 Codice di attivazione</h3>
+        <button type="button" class="modal-close" onclick="chiudiModale('pinModal')">Annulla</button>
+      </div>
+      <div class="modal-body">
+        <p class="spesa-msg" style="margin:0">
+          Il brand <strong id="pinBrandNome"></strong> è riservato ai partner abilitati.
+          Inserisci il <strong>codice di attivazione</strong> per includerlo nelle analisi.
+          Va inserito <strong>una sola volta</strong> su questo dispositivo.
+        </p>
+        <div class="field" style="margin:4px 0 0">
+          <input type="password" id="pinInput" placeholder="Codice" autocomplete="off"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();confermaPin();}">
+          <div id="pinErrore" class="pin-errore" style="display:none">Codice non valido. Riprova.</div>
+        </div>
+        <div class="spesa-actions">
+          <button type="button" class="primary" onclick="confermaPin()">Attiva brand</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- MODALE: invito spesa annua (FLAT) -->
@@ -1186,7 +1220,9 @@ const SORGENIA = {
 };
 
 
-const FUTURO_1 = { id:"futuro1", label:"Brand 4", color:"#9aa0b5", enabled:false, compute(){ return []; } };
+/* Segnaposto: brand annunciato ma non ancora attivo. Per abilitarlo servira'
+   un oggetto con compute(input) e enabled:true nel registro BRANDS. */
+const PLENITUDE = { id:"plenitude", label:"Plenitude", color:"#009E62", enabled:false, compute(){ return []; } };
 
 /* ===================== REGISTRO BRAND ===================== */
 const BRANDS = [
@@ -1194,25 +1230,96 @@ const BRANDS = [
   { ...FASTWEB,  enabled:true, active:true, logo:"assets/logos/fastweb.png"  },
   { ...ALPERIA,  enabled:true, active:true, logo:"assets/logos/alperia.png"  },
   { ...SORGENIA, enabled:true, active:true, logo:"assets/logos/sorgenia.png" },
+  { ...PLENITUDE, enabled:false, active:false, logo:"assets/logos/plenitude.svg" },
 ];
 
 /* ===================== UI: brand chips ===================== */
+/* ===================== BRAND PROTETTI DA PIN =====================
+   Deterrente pratico: il brand non si attiva senza codice, cosi i partner che
+   non lavorano quel brand non lo usano per errore. NON e' una protezione reale
+   (pagina statica: il gate vive nel browser). Il PIN e' salvato come hash.
+   Per cambiare il PIN basta sostituire l'hash (funzione pinHash). */
+const BRAND_PIN = {
+  fastweb: { hash:"45a07763", storageKey:"multienergia_unlock_fastweb" }
+};
+function pinHash(str){
+  let h=0x811c9dc5;
+  const v=String(str).trim().toUpperCase();
+  for(let i=0;i<v.length;i++){ h^=v.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; }
+  return h.toString(16).padStart(8,"0");
+}
+function brandRichiedePin(id){ return !!BRAND_PIN[id]; }
+function brandSbloccato(id){
+  const cfg=BRAND_PIN[id];
+  if(!cfg) return true;
+  try{ return localStorage.getItem(cfg.storageKey)==="1"; }catch(e){ return false; }
+}
+function sbloccaBrand(id){
+  const cfg=BRAND_PIN[id]; if(!cfg) return;
+  try{ localStorage.setItem(cfg.storageKey,"1"); }catch(e){}
+}
+function ribloccaBrand(id){
+  const cfg=BRAND_PIN[id]; if(!cfg) return;
+  try{ localStorage.removeItem(cfg.storageKey); }catch(e){}
+  const b=BRANDS.find(x=>x.id===id); if(b) b.active=false;
+  renderBrandChips();
+}
+
+/* Modale PIN */
+let _pinBrandId=null;
+function apriPinModal(id){
+  _pinBrandId=id;
+  const b=BRANDS.find(x=>x.id===id);
+  document.getElementById("pinBrandNome").textContent=b?b.label:id;
+  const inp=document.getElementById("pinInput");
+  inp.value=""; document.getElementById("pinErrore").style.display="none";
+  apriModale("pinModal");
+  setTimeout(()=>inp.focus(),120);
+}
+function confermaPin(){
+  const cfg=BRAND_PIN[_pinBrandId]; if(!cfg) return;
+  const val=document.getElementById("pinInput").value;
+  if(pinHash(val)===cfg.hash){
+    sbloccaBrand(_pinBrandId);
+    const b=BRANDS.find(x=>x.id===_pinBrandId); if(b) b.active=true;
+    chiudiModale("pinModal");
+    renderBrandChips();
+  } else {
+    const err=document.getElementById("pinErrore");
+    err.style.display="block";
+    document.getElementById("pinInput").select();
+  }
+}
+
 function renderBrandChips(){
   const row=document.getElementById("brandRow");
   row.innerHTML="";
   BRANDS.forEach((b,i)=>{
+    const bloccato = brandRichiedePin(b.id) && !brandSbloccato(b.id);
+    if(bloccato) b.active=false;                    // un brand bloccato non entra mai nell'analisi
     const chip=document.createElement("label");
-    chip.className="brand-chip"+(b.active?" active":"")+(b.enabled?"":" disabled");
-    chip.title = (b.active?"Disattiva ":"Attiva ")+b.label;
+    chip.className="brand-chip"+(b.active?" active":"")+(b.enabled?"":" disabled")+(bloccato?" locked":"");
+    chip.title = bloccato ? `${b.label}: inserisci il codice per abilitarlo`
+                          : (b.active?"Disattiva ":"Attiva ")+b.label;
     if(b.active) chip.style.borderColor=b.color;
     chip.innerHTML=(b.logo?`<img class="brand-logo" src="${b.logo}" alt="${b.label}">`:"")
       + `<span class="brand-name">${b.label}${b.enabled?"":" · Prossimamente"}</span>`
-      + `<span class="brand-check" style="color:${b.color}">${b.active?"✓":"+"}</span>`;
-    if(b.enabled){
+      + `<span class="brand-check" style="color:${(!b.enabled||bloccato)?'#8b93b0':b.color}">${!b.enabled?"🕓":(bloccato?"🔒":(b.active?"✓":"+"))}</span>`;
+    if(bloccato){
+      chip.onclick=()=>apriPinModal(b.id);
+    } else if(b.enabled){
       chip.onclick=()=>{ BRANDS[i].active=!BRANDS[i].active; renderBrandChips(); };
     }
     row.appendChild(chip);
   });
+  // Link discreto per ribloccare i brand protetti gia' sbloccati (utile su PC condivisi)
+  const host=document.getElementById("brandLockRow");
+  if(host){
+    const sbloccati=BRANDS.filter(b=>brandRichiedePin(b.id) && brandSbloccato(b.id));
+    host.innerHTML = sbloccati.length
+      ? sbloccati.map(b=>`<button type="button" class="lock-link" onclick="ribloccaBrand('${b.id}')">🔒 Blocca ${b.label} su questo dispositivo</button>`).join("")
+      : "";
+  }
   updateHeaderBrands();
   updateFormFields();
 }
@@ -1312,7 +1419,7 @@ function runConfronto(skipSpesaCheck){
   if(haLuce && !input.luce.mesi.length){ alert("Seleziona almeno un mese per il periodo Luce."); return; }
   if(haGas && !input.gas.mesi.length){ alert("Seleziona almeno un mese per il periodo Gas."); return; }
 
-  const activeBrands = BRANDS.filter(b=>b.enabled && b.active);
+  const activeBrands = BRANDS.filter(b=>b.enabled && b.active && !(brandRichiedePin(b.id) && !brandSbloccato(b.id)));
   if(!activeBrands.length){ alert("Attiva almeno un brand da confrontare."); return; }
 
   // Invito a inserire la spesa annua quando è in gioco un'offerta a fasce (FLAT)
