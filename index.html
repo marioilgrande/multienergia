@@ -699,8 +699,8 @@ const FASTWEB = {
   id:"fastweb", label:"Fastweb Energia", color:"#7c70b4",
   DISP:0.011,
   // luce a consumo
-  DOM_FIX_RAW:0.180, DOM_FLEX_SPREAD:0.026, DOM_CANONE_LISTINO:13,
-  BIZ_FIX_RAW:0.160, BIZ_FLEX_SPREAD:0.030, BIZ_CANONE_LISTINO:20,
+  DOM_FIX_RAW:0.190, DOM_FLEX_SPREAD:0.026, DOM_CANONE_LISTINO:13,
+  BIZ_FIX_RAW:0.180, BIZ_FLEX_SPREAD:0.030, BIZ_CANONE_LISTINO:20,
   // gas
   GAS_DOM_SPREAD:0.10, GAS_BIZ_SPREAD:0.13,
   GAS_DOM_CANONE_LISTINO:15, GAS_BIZ_CANONE_LISTINO:20,
@@ -729,8 +729,8 @@ const FASTWEB = {
   gasBizCanoneConv(){ return this._newOffersActive() ? this.GAS_BIZ_CANONE_LISTINO-20 : 10; },
   bizValidita(){ return this._newOffersActive() ? "24 mesi" : "36 mesi (anche Multisito)"; },
   EXPIRY_LEGACY:"16 giugno",
-  EXPIRY_NEW:{ flat:"11 settembre", fix:"11 settembre", flex:"25 settembre",
-               businessFix:"11 settembre", businessFlex:"25 settembre",
+  EXPIRY_NEW:{ flat:"25 settembre", fix:"25 settembre", flex:"25 settembre",
+               businessFix:"25 settembre", businessFlex:"25 settembre",
                gasDom:"25 settembre", gasBiz:"25 settembre" },
   expiry(key){ return this._newOffersActive() ? (this.EXPIRY_NEW[key]||this.EXPIRY_LEGACY) : this.EXPIRY_LEGACY; },
   // Welcome Bonus Luce domestica 15€ (3 rate da 5€): finestra 10/07/2026 → 27/08/2026
