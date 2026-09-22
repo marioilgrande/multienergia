@@ -283,6 +283,10 @@
       <p class="app-brands" id="appBrands"></p>
     </header>
 
+    <!-- Andamento di mercato GME (solo informativo, NON usato nei calcoli) -->
+    <section id="mercato" class="mk-box" hidden></section>
+
+
     <div class="panel">
       <h2>Brand da confrontare</h2>
       <div class="brand-row" id="brandRow"></div>
@@ -537,8 +541,11 @@
       </div>
       <div class="modal-body">
         <div class="slideshow">
-          <img class="slide active" src="assets/offerte-in-corso.jpeg" alt="Offerte Luce e Gas in corso" />
-          <img class="slide" src="assets/acea-fix-dettaglio.png" alt="ACEA FIX - dettaglio" />
+          <img class="slide active" src="assets/offerte-in-corso.png" alt="Offerte Luce e Gas in corso" />
+          <img class="slide" src="assets/offerta-fix.jpeg" alt="Offerta ACEA FIX" />
+          <img class="slide" src="assets/offerta-sprint-domestico.png" alt="Offerta SPRINT Domestico" />
+          <img class="slide" src="assets/offerta-sprint-business.png" alt="Offerta SPRINT Business" />
+          <img class="slide" src="assets/offerta-flex.png" alt="Offerta ACEA FLEX" />
           <button type="button" class="slide-nav slide-prev" onclick="cambiaSlide(-1)">‹</button>
           <button type="button" class="slide-nav slide-next" onclick="cambiaSlide(1)">›</button>
         </div>
@@ -546,10 +553,13 @@
           <div class="slide-dots">
             <span class="dot active" onclick="vaiSlide(0)"></span>
             <span class="dot" onclick="vaiSlide(1)"></span>
+            <span class="dot" onclick="vaiSlide(2)"></span>
+            <span class="dot" onclick="vaiSlide(3)"></span>
+            <span class="dot" onclick="vaiSlide(4)"></span>
           </div>
-          <div class="hint"><span id="slideTitle">Offerte Luce e Gas</span> · <span id="slideCounter">1 / 2</span></div>
+          <div class="hint"><span id="slideTitle">Offerte Luce e Gas</span> · <span id="slideCounter">1 / 5</span></div>
         </div>
-        <a id="slideDownload" href="assets/offerte-in-corso.jpeg" download="offerte-energia.jpeg" class="btn-download">⬇ Scarica questa immagine</a>
+        <a id="slideDownload" href="assets/offerte-in-corso.png" download="offerte-energia.png" class="btn-download">⬇ Scarica questa immagine</a>
       </div>
     </div>
   </div>
@@ -603,6 +613,7 @@ function monthLabels(keys){ return keys.map(k=>monthByKey[k]?.label || k).join("
 
 /* ---- UTILS ---- */
 function money(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function rate3(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:3,maximumFractionDigits:3}); }
 function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
 
 /* =========================================================================
@@ -627,12 +638,12 @@ const ACEA = {
       luce:[
         { nome:"ACEA SPRINT LUCE", tipo:"ind", spread:0.0145, canone:10 },
         { nome:"ACEA FLEX LUCE",   tipo:"ind", spread:0.03,   canone:9, marginalita:true },
-        { nome:"ACEA FIX LUCE",    tipo:"fix", raw:0.125,      canone:12 },
+        { nome:"ACEA FIX LUCE",    tipo:"fix", raw:0.14,       canone:12 },
       ],
       gas:[
         { nome:"ACEA SPRINT GAS", tipo:"ind", spread:0.075, canone:10 },
         { nome:"ACEA FLEX GAS",   tipo:"ind", spread:0.148, canone:9, marginalita:true },
-        { nome:"ACEA FIX GAS",    tipo:"fix", raw:0.58,     canone:12 },
+        { nome:"ACEA FIX GAS",    tipo:"fix", raw:0.64,     canone:12 },
       ],
     },
     business:{
@@ -710,7 +721,8 @@ const FASTWEB = {
   FLAT_LISTINO_LEGACY:[41,56,76,91,106],   // fino al 25/07/2026
   FLAT_LISTINO_NEW:[47,64,87,109,130],     // dal 26/07/2026 (definitivi)
   POWER_STEP_PRICE:5,
-  TIER_EXTRA:[0.30,0.27,0.21,0.20,0.13],
+  // extra soglia / restituzione (€/kWh) — aggiornati 09/2026
+  TIER_EXTRA:[0.300,0.283,0.269,0.259,0.245],
   ULTRA_TOLERANCE:500,
 
   /* ---- Logiche a decorrenza: restano corrette nel tempo ----
@@ -882,8 +894,8 @@ function applyFlatTier(o, t){
           value:"€ "+money(tv.monthly)+"/mese" + (f.conv?` (listino € ${money(tv.listino)})`:` (cliente € ${money(tv.cliente)})`)});
   d.push({label:"Soglia fascia", value:"fino a "+tv.threshold.toLocaleString("it-IT")+" kWh/anno"});
   if(tv.t===4) d.push({label:"Tolleranza fascia ULTRA", value:"fino a "+(tv.threshold+f.ULTRA_TOLERANCE).toLocaleString("it-IT")+" kWh/anno"});
-  d.push({label:"Extra oltre soglia", value:"€ "+money(tv.rate)+"/kWh"});
-  d.push({label:"Restituzione consumi non utilizzati", value:"€ "+money(tv.rate)+"/kWh"});
+  d.push({label:"Extra oltre soglia", value:"€ "+rate3(tv.rate)+"/kWh"});
+  d.push({label:"Restituzione consumi non utilizzati", value:"€ "+rate3(tv.rate)+"/kWh"});
 
   d.push({label:"Analisi bolletta (periodo)", sub:true});
   d.push({label:"Totale bolletta inserito", value:"€ "+money(f.totaleBolletta)});
@@ -892,8 +904,8 @@ function applyFlatTier(o, t){
   d.push({label:"Analisi annuale", sub:true});
   d.push({label:"Consumo annuale inserito", value:f.consumoAnnuo.toLocaleString("it-IT")+" kWh"});
   d.push({label:"Annuale fascia (base)", value:"€ "+money(tv.baseAnnual)});
-  if(tv.extraKwh>0) d.push({label:`Extra oltre soglia (${tv.extraKwh.toLocaleString("it-IT")} kWh × €${money(tv.rate)})`, value:"€ "+money(tv.extraAnnual)});
-  if(tv.marginKwh>0) d.push({label:`Rimborso sotto soglia (${tv.marginKwh.toLocaleString("it-IT")} kWh × €${money(tv.rate)})`, value:"- € "+money(tv.refund)});
+  if(tv.extraKwh>0) d.push({label:`Extra oltre soglia (${tv.extraKwh.toLocaleString("it-IT")} kWh × €${rate3(tv.rate)})`, value:"€ "+money(tv.extraAnnual)});
+  if(tv.marginKwh>0) d.push({label:`Rimborso sotto soglia (${tv.marginKwh.toLocaleString("it-IT")} kWh × €${rate3(tv.rate)})`, value:"- € "+money(tv.refund)});
   d.push({label:"Totale annuale (canone + extra − rimborso)", value:"€ "+money(tv.totalAnnual), tot:true});
 
   if(t===f.bestT){
@@ -1800,8 +1812,11 @@ function spesaAnnuaProcedi(){
 }
 
 const SLIDES=[
-  { src:"assets/offerte-in-corso.jpeg", download:"offerte-energia.jpeg", title:"Offerte Luce e Gas" },
-  { src:"assets/acea-fix-dettaglio.png", download:"acea-fix-dettaglio.png", title:"ACEA FIX" },
+  { src:"assets/offerte-in-corso.png",          download:"offerte-energia.png",           title:"Offerte Luce e Gas" },
+  { src:"assets/offerta-fix.jpeg",              download:"offerta-acea-fix.jpeg",         title:"ACEA FIX" },
+  { src:"assets/offerta-sprint-domestico.png",  download:"offerta-sprint-domestico.png",  title:"SPRINT Domestico" },
+  { src:"assets/offerta-sprint-business.png",   download:"offerta-sprint-business.png",   title:"SPRINT Business" },
+  { src:"assets/offerta-flex.png",              download:"offerta-acea-flex.png",         title:"ACEA FLEX" },
 ];
 let curSlide=0;
 function cambiaSlide(d){ vaiSlide(curSlide+d); }
@@ -1835,7 +1850,7 @@ function renderRiepilogo(){
     const list=F._monthly(t,riepPower,false);
     const price=cli?F._monthly(t,riepPower,true):list;
     const soglia=F.THRESHOLDS[t].toLocaleString("it-IT");
-    const extra=money(F.TIER_EXTRA[t]);
+    const extra=rate3(F.TIER_EXTRA[t]);
     const ultra=t===4?`<br>tolleranza fino a ${(F.THRESHOLDS[t]+F.ULTRA_TOLERANCE).toLocaleString("it-IT")} kWh/anno`:"";
     return `<div class="tier-card">
       <span class="pill">${name}</span>
@@ -1904,5 +1919,187 @@ function riepSetPower(p){ riepPower=p; renderRiepilogo(); }
 renderBrandChips();
 renderMesi();
 </script>
+
+  <!-- ===== ANDAMENTO DI MERCATO (GME) - solo informativo ===== -->
+  <style>
+    /* =========================
+       FASCIA ANDAMENTO MERCATO (GME) — solo informativa
+       ========================= */
+    .mk-box{
+      background:#f4f6f8;
+      border:1px solid #dfe4ea;
+      border-radius:10px;
+      padding:12px 14px;
+      margin:16px 0;
+    }
+    .mk-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+    .mk-h h2{
+      margin:0;font-size:12px;font-weight:800;letter-spacing:.8px;
+      text-transform:uppercase;color:#5a6572;
+    }
+    .mk-tag{
+      font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+      background:#e53935;color:#fff;padding:3px 8px;border-radius:999px;white-space:nowrap;
+    }
+    .mk-src{font-size:11px;color:#8a939e;flex-basis:100%;line-height:1.45}
+    .mk-old{
+      font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+      background:#fff3cd;color:#856404;padding:3px 8px;border-radius:999px;
+    }
+    .mk-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+    .mk{
+      position:relative;padding:12px 14px 10px;background:#fff;
+      border:1px solid #e3e7ec;border-radius:8px;overflow:hidden;
+    }
+    .mk::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--c)}
+    .mk-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .mk-k{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--c)}
+    .mk-g{font-size:10.5px;color:#9aa3ad;font-variant-numeric:tabular-nums}
+    .mk-v{
+      display:flex;align-items:baseline;gap:6px;margin:4px 0 2px;
+      font-size:23px;font-weight:800;color:#222;font-variant-numeric:tabular-nums;
+    }
+    .mk-v small{font-size:12px;font-weight:600;color:#7b848e}
+    .mk-d{font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+    .mk-d.up{color:#c62828}
+    .mk-d.down{color:#2e7d32}
+    .spark{display:block;width:100%;height:28px;margin:4px 0 2px;opacity:.9}
+    .mk-p{
+      display:flex;align-items:baseline;gap:8px;padding:6px 0 2px;margin-top:2px;
+      border-top:1px dashed #e3e7ec;
+    }
+    .mk-pk{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#9aa3ad}
+    .mk-pv{font-size:13px;font-weight:700;color:#5a6572;font-variant-numeric:tabular-nums}
+    .mk-pd{font-size:11px;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums}
+    .mk-pd.up{color:#c62828}
+    .mk-pd.down{color:#2e7d32}
+    .mk-x{font-size:10.5px;color:#9aa3ad;margin-top:4px;line-height:1.45;font-variant-numeric:tabular-nums}
+    @media (max-width:540px){
+      .mk-v{font-size:20px}
+      .mk-grid{grid-template-columns:1fr}
+    }
+  </style>
+  <script>
+    /* =========================================================
+       ANDAMENTO DI MERCATO (GME) — SOLO INFORMATIVO
+       Legge il feed gia' usato dal portale Workspace. E' del tutto
+       separato dal motore di calcolo: non tocca offertePerMese,
+       il form o calcolaCosto(). Se il feed non risponde la fascia
+       resta nascosta e il comparatore funziona come sempre.
+       ========================================================= */
+    const MERCATO_URL = "https://workspaceisernia.vercel.app/api/mercato";
+
+    const mkNum = (v, dec) => Number(v).toFixed(dec).replace(".", ",");
+    const mkGiorno = iso => { const [a, m, g] = iso.split("-"); return `${g}/${m}`; };
+
+    function mkSparkline(punti, colore) {
+      const v = punti.filter(x => x != null);
+      if (v.length < 2) return "";
+      const min = Math.min(...v), max = Math.max(...v);
+      const scala = max - min || 1;
+      const passo = 100 / (punti.length - 1);
+      let d = "", staccato = true;
+      punti.forEach((p, i) => {
+        if (p == null) { staccato = true; return; }
+        const x = (i * passo).toFixed(2);
+        const y = (26 - ((p - min) / scala) * 24).toFixed(2);
+        d += `${staccato ? "M" : "L"}${x} ${y}`;
+        staccato = false;
+      });
+      return `<svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
+        <path d="${d}" fill="none" stroke="${colore}" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      </svg>`;
+    }
+
+    function mkPannello({ eti, colore, val, prec, unita, dec, giorno, precGiorno, extra, serie }) {
+      if (val == null) return "";
+      let delta = "", riga = "";
+      if (prec != null && prec !== 0) {
+        const perc = ((val - prec) / prec) * 100;
+        const su = perc >= 0;
+        delta = `<span class="mk-d ${su ? "up" : "down"}">${su ? "▲" : "▼"} ${Math.abs(perc).toFixed(1)}%</span>`;
+        const diff = Math.abs(val - prec);
+        riga = `<div class="mk-p">
+          <span class="mk-pk">giorno prima${precGiorno ? ` · ${mkGiorno(precGiorno)}` : ""}</span>
+          <span class="mk-pv">${mkNum(prec, dec)}</span>
+          <span class="mk-pd ${su ? "up" : "down"}">${su ? "+" : "−"}${mkNum(diff, dec)}</span>
+        </div>`;
+      }
+      return `
+        <div class="mk" style="--c:${colore}">
+          <div class="mk-top">
+            <span class="mk-k">${eti}</span>
+            <span class="mk-g">consegna ${mkGiorno(giorno)}</span>
+          </div>
+          <div class="mk-v">${mkNum(val, dec)}<small>${unita}</small>${delta}</div>
+          ${mkSparkline(serie, colore)}
+          ${riga}
+          ${extra ? `<div class="mk-x">${extra}</div>` : ""}
+        </div>`;
+    }
+
+    function renderMercato(m) {
+      const box = document.getElementById("mercato");
+      if (!box || !m || (!m.pun && !m.gas)) return;
+
+      const serie = m.serie || [];
+      const scorso = k => {
+        const con = serie.filter(x => x[k] != null);
+        return con.length > 1 ? con[con.length - 2] : null;
+      };
+      const pPun = scorso("pun"), pGas = scorso("gas");
+
+      const fasce = m.pun
+        ? ["f1", "f2", "f3"].filter(k => m.pun[k] != null)
+            .map(k => `${k.toUpperCase()} ${mkNum(m.pun[k], 5)}`).join(" · ")
+        : "";
+
+      // se il GME non pubblica da giorni e' meglio dirlo che far finta di niente
+      const giorno = (m.pun && m.pun.giorno) || (m.gas && m.gas.giorno);
+      const scarto = Math.floor((Date.now() - new Date(giorno + "T12:00:00")) / 86400000);
+      const vecchio = scarto > 3 ? `<span class="mk-old">dato fermo a ${scarto} giorni fa</span>` : "";
+
+      box.innerHTML = `
+        <div class="mk-h">
+          <h2>Andamento di mercato — oggi</h2>
+          <span class="mk-tag">non usato nel calcolo</span>
+          ${vecchio}
+          <span class="mk-src">Indici GME giornalieri, solo indicativi. Le offerte qui sotto si calcolano con gli indici mensili PUN/PSV da contratto, che sono diversi da questi.</span>
+        </div>
+        <div class="mk-grid">
+          ${mkPannello({
+            eti: "Luce — PUN", colore: "#d6006d",
+            val: m.pun && m.pun.kwh, prec: pPun ? pPun.pun : (m.pun && m.pun.prec),
+            unita: "€/kWh", dec: 5,
+            giorno: m.pun && m.pun.giorno, precGiorno: pPun && pPun.d,
+            extra: fasce, serie: serie.map(x => x.pun),
+          })}
+          ${mkPannello({
+            eti: "Gas — IG Index GME", colore: "#ea580c",
+            val: m.gas && m.gas.smc, prec: pGas ? pGas.gas : (m.gas && m.gas.prec),
+            unita: "€/Smc", dec: 5,
+            giorno: m.gas && m.gas.giorno, precGiorno: pGas && pGas.d,
+            extra: m.gas && m.gas.mwh != null
+              ? `${mkNum(m.gas.mwh, 2)} €/MWh · indice ufficiale del mercato gas italiano`
+              : "indice ufficiale del mercato gas italiano",
+            serie: serie.map(x => x.gas),
+          })}
+        </div>`;
+      box.hidden = false;
+    }
+
+    async function caricaMercato() {
+      try {
+        const r = await fetch(MERCATO_URL, { cache: "no-store" });
+        if (!r.ok) return;
+        const m = await r.json();
+        if (m && (m.pun || m.gas)) renderMercato(m);
+      } catch (e) {
+        /* feed non raggiungibile: la fascia resta nascosta, il resto funziona */
+      }
+    }
+    caricaMercato();
+  </script>
 </body>
 </html>
