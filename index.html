@@ -729,22 +729,40 @@ const FASTWEB = {
      26/07/2026: nuovo listino FLAT (validità 24 mesi invece di 36)
      28/08/2026: nuove condizioni — convergenza FLAT 15€, domestico FIX/FLEX -7€,
                  business FIX/FLEX -20€ (canone 0), gas domestico commercializzazione 0,
-                 gas business -20€ (canone 0), durata business 24 mesi, scadenze per offerta */
+                 gas business -20€ (canone 0), durata business 24 mesi, scadenze per offerta
+     26/09/2026: B2C — luce FIX 0,198 €/kWh, gas PSV+0,12 €/Smc, convergenza FLAT -10€,
+                 luce a consumo -5€, gas domestico -10€;
+                 B2B — prezzi confermati, convergenza torna a -10€ per tutte;
+                 scadenze tutte al 7 ottobre */
   _flatNewActive(){ return new Date() >= new Date(2026,6,26); },
   _newOffersActive(){ return new Date() >= new Date(2026,7,28); },
+  _sep26Active(){ return new Date() >= new Date(2026,8,26); },
   flatPrices(){ return this._flatNewActive() ? this.FLAT_LISTINO_NEW : this.FLAT_LISTINO_LEGACY; },
   flatValidita(){ return this._flatNewActive() ? "24 mesi" : "36 mesi"; },
-  convergenceDiscount(){ return this._newOffersActive() ? 15 : 11; },
-  domCanoneConv(){ return this._newOffersActive() ? this.DOM_CANONE_LISTINO-7 : 8; },
-  bizCanoneConv(){ return this._newOffersActive() ? this.BIZ_CANONE_LISTINO-20 : 10; },
-  gasDomCanoneConv(){ return this._newOffersActive() ? 0 : 4; },
-  gasBizCanoneConv(){ return this._newOffersActive() ? this.GAS_BIZ_CANONE_LISTINO-20 : 10; },
+  domFixRaw(){ return this._sep26Active() ? 0.198 : this.DOM_FIX_RAW; },
+  gasDomSpread(){ return this._sep26Active() ? 0.12 : this.GAS_DOM_SPREAD; },
+  convergenceDiscount(){ return this._sep26Active() ? 10 : (this._newOffersActive() ? 15 : 11); },
+  domCanoneConv(){ return this._sep26Active() ? this.DOM_CANONE_LISTINO-5
+                        : (this._newOffersActive() ? this.DOM_CANONE_LISTINO-7 : 8); },
+  bizCanoneConv(){ return this._sep26Active() ? this.BIZ_CANONE_LISTINO-10
+                        : (this._newOffersActive() ? this.BIZ_CANONE_LISTINO-20 : 10); },
+  gasDomCanoneConv(){ return this._sep26Active() ? this.GAS_DOM_CANONE_LISTINO-10
+                           : (this._newOffersActive() ? 0 : 4); },
+  gasBizCanoneConv(){ return this._sep26Active() ? this.GAS_BIZ_CANONE_LISTINO-10
+                           : (this._newOffersActive() ? this.GAS_BIZ_CANONE_LISTINO-20 : 10); },
   bizValidita(){ return this._newOffersActive() ? "24 mesi" : "36 mesi (anche Multisito)"; },
   EXPIRY_LEGACY:"16 giugno",
   EXPIRY_NEW:{ flat:"25 settembre", fix:"25 settembre", flex:"25 settembre",
                businessFix:"25 settembre", businessFlex:"25 settembre",
                gasDom:"25 settembre", gasBiz:"25 settembre" },
-  expiry(key){ return this._newOffersActive() ? (this.EXPIRY_NEW[key]||this.EXPIRY_LEGACY) : this.EXPIRY_LEGACY; },
+  EXPIRY_SEP26:{ flat:"7 ottobre", fix:"7 ottobre", flex:"7 ottobre",
+                 businessFix:"7 ottobre", businessFlex:"7 ottobre",
+                 gasDom:"7 ottobre", gasBiz:"7 ottobre" },
+  expiry(key){
+    if(this._sep26Active())      return this.EXPIRY_SEP26[key]||this.EXPIRY_LEGACY;
+    if(!this._newOffersActive()) return this.EXPIRY_LEGACY;
+    return this.EXPIRY_NEW[key]||this.EXPIRY_LEGACY;
+  },
   // Welcome Bonus Luce domestica 15€ (3 rate da 5€): finestra 10/07/2026 → 27/08/2026
   welcomeBonusActive(){ const t=new Date(); return t>=new Date(2026,6,10) && t<=new Date(2026,7,27,23,59,59); },
 
@@ -759,7 +777,7 @@ const FASTWEB = {
       const nMesi = input.luce.mesi.length;
       const canone = biz ? (conv?this.bizCanoneConv():this.BIZ_CANONE_LISTINO)
                          : (conv?this.domCanoneConv():this.DOM_CANONE_LISTINO);
-      const fixRaw  = biz ? this.BIZ_FIX_RAW : this.DOM_FIX_RAW;
+      const fixRaw  = biz ? this.BIZ_FIX_RAW : this.domFixRaw();
       const flexSpr = biz ? this.BIZ_FLEX_SPREAD : this.DOM_FLEX_SPREAD;
       const prefix = biz ? "FASTWEB LUCE BUSINESS " : "FASTWEB LUCE ";
       const validitaLuce = biz ? this.bizValidita() : "12 mesi";
@@ -807,7 +825,7 @@ const FASTWEB = {
     if(haFastwebLuce && input.gas.smc>0 && input.gas.mesi.length){
       const psv = avg(input.gas.mesi,"psv");
       const nMesi = input.gas.mesi.length;
-      const spread = biz ? this.GAS_BIZ_SPREAD : this.GAS_DOM_SPREAD;
+      const spread = biz ? this.GAS_BIZ_SPREAD : this.gasDomSpread();
       const canone = biz ? (conv?this.gasBizCanoneConv():this.GAS_BIZ_CANONE_LISTINO)
                          : (conv?this.gasDomCanoneConv():this.GAS_DOM_CANONE_LISTINO);
       const energia = input.gas.smc*(psv+spread);
@@ -1885,26 +1903,26 @@ function renderRiepilogo(){
     <div class="riep-head">A CONSUMO — DOMESTICO ${seg}</div>
     <div class="riep-block">
       <div class="t">Fastweb Luce Fix</div>
-      <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>€${money(F.DOM_FIX_RAW)}/kWh</strong> (+ disp. €${money(F.DISP)} → ${money(F.DOM_FIX_RAW+F.DISP)} €/kWh)</div>
+      <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>€${rate3(F.domFixRaw())}/kWh</strong> (+ disp. €${rate3(F.DISP)} → ${rate3(F.domFixRaw()+F.DISP)} €/kWh)</div>
       <div class="hint">Validità 12 mesi</div>
       <div class="div"></div>
       <div class="t">Fastweb Luce Flex</div>
-      <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>PUN + €${money(F.DOM_FLEX_SPREAD)}/kWh</strong> (+ disp. €${money(F.DISP)})</div>
+      <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>PUN + €${rate3(F.DOM_FLEX_SPREAD)}/kWh</strong> (+ disp. €${rate3(F.DISP)})</div>
       <div class="hint">Validità 12 mesi</div>
       <div class="div"></div>
       <div class="t">Fastweb Gas Flex</div>
-      <div class="ln">Commercializz. <strong>€${cGasDom}/mese</strong> (${who}) + Gas <strong>PSV + €${money(F.GAS_DOM_SPREAD)}/Smc</strong></div>
+      <div class="ln">Commercializz. <strong>€${cGasDom}/mese</strong> (${who}) + Gas <strong>PSV + €${money(F.gasDomSpread())}/Smc</strong></div>
       <div class="hint">Validità 12 mesi · DUAL con luce o upsell su cliente Fastweb Luce</div>
     </div>
 
     <div class="riep-head">A CONSUMO — BUSINESS ${seg}</div>
     <div class="riep-block">
       <div class="t">Fastweb Luce Business Fix</div>
-      <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>€${money(F.BIZ_FIX_RAW)}/kWh</strong> (+ disp. €${money(F.DISP)} → ${money(F.BIZ_FIX_RAW+F.DISP)} €/kWh)</div>
+      <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>€${rate3(F.BIZ_FIX_RAW)}/kWh</strong> (+ disp. €${rate3(F.DISP)} → ${rate3(F.BIZ_FIX_RAW+F.DISP)} €/kWh)</div>
       <div class="hint">Validità ${F.bizValidita()}</div>
       <div class="div"></div>
       <div class="t">Fastweb Luce Business Flex</div>
-      <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>PUN + €${money(F.BIZ_FLEX_SPREAD)}/kWh</strong> (+ disp. €${money(F.DISP)})</div>
+      <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>PUN + €${rate3(F.BIZ_FLEX_SPREAD)}/kWh</strong> (+ disp. €${rate3(F.DISP)})</div>
       <div class="hint">Validità ${F.bizValidita()}</div>
       <div class="div"></div>
       <div class="t">Fastweb Gas Flex Business</div>
