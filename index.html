@@ -600,6 +600,15 @@ function offertaScaduta(off){
   const oggi = new Date(); oggi.setHours(0,0,0,0);
   return fine < oggi;
 }
+/* Offerte con "dal" (gg/mm/aaaa): restano nascoste fino a quella data. */
+function offertaNonAncoraVendibile(off){
+  if(!off || !off.dal) return false;
+  const p = String(off.dal).split("/");
+  if(p.length !== 3) return false;
+  const inizio = new Date(+p[2], +p[1]-1, +p[0]);
+  const oggi = new Date(); oggi.setHours(0,0,0,0);
+  return oggi < inizio;
+}
 function giorniAllaScadenza(off){
   if(!off || !off.scadenza) return null;
   const p = String(off.scadenza).split("/");
@@ -1144,7 +1153,10 @@ const ALPERIA = {
 };
 
 /* ===================== BRAND: SORGENIA ===================== */
-/* Modello Sorgenia (dal COMPARATORE SORGENIA): tutte le offerte sono INDICIZZATE.
+/* Modello Sorgenia (dal COMPARATORE SORGENIA): offerte INDICIZZATE + prezzo fisso (tipo:"fissa").
+   - fissa: prezzoFisso = prezzo bloccato 24 mesi (luce NETTO perdite, prezzoFissoCte = lordo CTE);
+     vale per tutti i 24 mesi, quindi sia per il 1° anno sia dal 13° mese
+   - dal = prima data di vendibilità: prima di allora l'offerta non compare
    - fee[0] = 1° anno, fee[1] = dal 13° mese. I valori sono NETTO PERDITE
      (la CTE espone il lordo: feeCte = fee x 1,10 sulla luce).
    - pcv = quota di commercializzazione €/anno; sconto[] = sconto fedeltà sul pcv (domestiche)
@@ -1155,6 +1167,9 @@ const SORGENIA = {
   id:"sorgenia", label:"Sorgenia", color:"#1C3155",
   DISP_LUCE:0.02,
   OFFERTE:[
+    // ---- DOMESTICO · PREZZO FISSO 24 MESI · NEXT ENERGY VENTIQUATTRO (vendibile dal 01/10/2026) ----
+    { nome:"Next Energy Ventiquattro Luce", cliente:"domestico", fornitura:"luce", tipo:"fissa", prezzoFisso:0.145, prezzoFissoCte:0.1595, pcv:144, sconto:[0.05,0.10], dopo:"PUN + 0,029 €/kWh + Indice GO", dal:"01/10/2026", scadenza:"31/10/2026", nota:"Prezzo bloccato 24 mesi, profilo monorario. Solo POD senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta." },
+    { nome:"Next Energy Ventiquattro Gas",  cliente:"domestico", fornitura:"gas",  tipo:"fissa", prezzoFisso:0.649, pcv:144, sconto:[0.05,0.10], dopo:"PSV + 0,1915 €/Smc", dal:"01/10/2026", scadenza:"31/10/2026", nota:"Prezzo bloccato 24 mesi. Solo PDR senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta." },
     // ---- BUSINESS · LUCE · BORSA PIÙ SMART ----
     { nome:"Borsa Più Smart Corporate Premium", cliente:"business", fornitura:"luce", fee:[0.0034,0.0054], feeCte:[0.00374,0.00594], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
     { nome:"Borsa Più Smart Corporate",         cliente:"business", fornitura:"luce", fee:[0.0048,0.0068], feeCte:[0.00528,0.00748], pcv:120, scadenza:"30/09/2026", nota:"Consumo annuo sotto 1.000.000 kWh per contratto. Corrispettivi Terna di dispacciamento addebitati a parte." },
@@ -1184,9 +1199,10 @@ const SORGENIA = {
       const idx = avg(svc.mesi, idxProp);
       const nMesi = svc.mesi.length;
 
-      this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio && !offertaScaduta(o)).forEach(o=>{
+      this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio && !offertaScaduta(o) && !offertaNonAncoraVendibile(o)).forEach(o=>{
+        const fissa = o.tipo==="fissa";
         // Fee dell'anno contrattuale, con eventuale riduzione per contatore orario
-        let fee = o.fee[annoIdx];
+        let fee = fissa ? 0 : o.fee[annoIdx];
         let notaOrario = "";
         if(o.orario && orario && servizio==="luce"){
           const riduzioneNetta = o.orario/1.10;   // la riduzione CTE è sul valore lordo perdite
@@ -1195,7 +1211,15 @@ const SORGENIA = {
         }
 
         let energia, note;
-        if(servizio==="luce"){
+        if(fissa && servizio==="luce"){
+          energia = consumo*(o.prezzoFisso + DISP);
+          note = `Prezzo fisso 24 mesi ${o.prezzoFisso.toFixed(4)} €/kWh (netto perdite`
+               + (o.prezzoFissoCte ? `, CTE ${o.prezzoFissoCte.toFixed(4)} lordo` : "")
+               + `) + disp. ${DISP.toFixed(4)} €/kWh`;
+        } else if(fissa){
+          energia = consumo*o.prezzoFisso;
+          note = `Prezzo fisso 24 mesi ${o.prezzoFisso.toFixed(4)} €/Smc`;
+        } else if(servizio==="luce"){
           energia = consumo*(idx + fee + DISP);
           note = `PUN medio ${idx.toFixed(4)} + fee ${fee.toFixed(4)} €/kWh (netto perdite`
                + (o.feeCte ? `, CTE ${o.feeCte[annoIdx].toFixed(5)} lordo` : "")
@@ -1219,7 +1243,8 @@ const SORGENIA = {
         const quotaVarCost = o.quotaVar ? consumo*o.quotaVar : 0;
         const tot = energia + fisso + quotaVarCost;
 
-        if(annoIdx===0) note += ` · Dal 13° mese la fee passa a ${o.fee[1].toFixed(4)}`;
+        if(fissa) note += ` · Dal 25° mese: ${o.dopo}`;
+        else if(annoIdx===0) note += ` · Dal 13° mese la fee passa a ${o.fee[1].toFixed(4)}`;
         if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
         if(o.nota) note += ` · ⚠ ${o.nota}`;
 
@@ -1233,13 +1258,14 @@ const SORGENIA = {
         out.push({
           brandId:this.id, brandLabel:this.label, brandColor:this.color,
           servizio, nome:"SORGENIA "+o.nome,
-          tipoBadge:{text: servizio==="gas"?"Indicizzata PSV":"Indicizzata PUN", cls:"b-ind"},
+          tipoBadge: fissa ? {text:"Prezzo Fisso", cls:"b-fix"}
+                           : {text: servizio==="gas"?"Indicizzata PSV":"Indicizzata PUN", cls:"b-ind"},
           base:"materia", baseLabel: servizio==="gas" ? "spesa materia gas" : "spesa materia energia",
           periodo:monthLabels(svc.mesi), nMesi,
           costoAttuale:svc.attuale, costoOfferta:tot, risparmio:svc.attuale-tot,
-          tipoPrezzo:"variabile",
+          tipoPrezzo: fissa ? "fissa" : "variabile",
           dettaglio:det, note,
-          validita: annoIdx===0 ? "fee 1° anno" : "fee dal 13° mese",
+          validita: fissa ? "prezzo bloccato 24 mesi" : (annoIdx===0 ? "fee 1° anno" : "fee dal 13° mese"),
         });
       });
     };
