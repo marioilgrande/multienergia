@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --ink:#1f2545;
@@ -655,6 +656,15 @@ function giorniAllaScadenza(off){
 }
 
 function fmtN(n,d){ return Number(n).toLocaleString("it-IT",{minimumFractionDigits:d, maximumFractionDigits:d}); }
+/* importi/numeri con separatore delle migliaia sempre (1.250,00): per il PDF */
+function moneyG(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"}); }
+function numG(n){ return (n||0).toLocaleString("it-IT",{maximumFractionDigits:0,useGrouping:"always"}); }
+/* canone Fastweb + riga dedicata allo sconto convergenza (o al prezzo per i clienti) */
+function pdfCanoneRows(label, canone, listino, convVal, conv){
+  return conv
+    ? [[label, `€ ${moneyG(canone)}/mese`], ["Sconto convergenza", `- € ${moneyG(listino-canone)}/mese (listino € ${moneyG(listino)})`]]
+    : [[label, `€ ${moneyG(canone)}/mese`], ["Clienti Fastweb/Vodafone", `€ ${moneyG(convVal)}/mese`]];
+}
 
 function monthLabels(keys){ return keys.map(k=>monthByKey[k]?.label || k).join(", "); }
 
@@ -801,6 +811,15 @@ const FASTWEB = {
             + ` · Scadenza offerta: ${this.expiry(biz ? (kind==="fix"?"businessFix":"businessFlex") : (kind==="fix"?"fix":"flex"))}`
             + (!biz && this.welcomeBonusActive() ? " · 🎁 Welcome Bonus 15€ (3 rate da 5€) per nuovi clienti" : ""),
           validita:validitaLuce,
+          pdfCond:[
+            ["Prezzo energia", kind==="fix" ? `€ ${rate3(fixRaw)}/kWh (prezzo fisso)` : `PUN + € ${rate3(flexSpr)}/kWh`],
+            ["Dispacciamento", `€ ${rate3(this.DISP)}/kWh`],
+            ...pdfCanoneRows("Canone mensile", canone, biz?this.BIZ_CANONE_LISTINO:this.DOM_CANONE_LISTINO,
+                             biz?this.bizCanoneConv():this.domCanoneConv(), conv),
+            ["Sottoscrivibile entro il", this.expiry(biz ? (kind==="fix"?"businessFix":"businessFlex") : (kind==="fix"?"fix":"flex"))],
+            ["Condizioni valide per", validitaLuce],
+          ],
+          pdfBonus: (!biz && this.welcomeBonusActive()) ? "WELCOME BONUS LUCE: 15€ di sconto per i nuovi clienti, in 3 rate da 5€ nelle prime bollette utili" : "",
         });
       });
 
@@ -841,6 +860,13 @@ const FASTWEB = {
         note:`PSV medio ${psv.toFixed(4)} + spread ${money(spread)} €/Smc · attivabile in DUAL o upsell su cliente Fastweb Luce · Scadenza offerta: ${this.expiry(biz?"gasBiz":"gasDom")}`,
         validita:"12 mesi",
         requiresLuce:true,
+        pdfCond:[
+          ["Prezzo gas", `PSV + € ${money(spread)}/Smc`],
+          ...pdfCanoneRows("Commercializzazione", canone, biz?this.GAS_BIZ_CANONE_LISTINO:this.GAS_DOM_CANONE_LISTINO,
+                           biz?this.gasBizCanoneConv():this.gasDomCanoneConv(), conv),
+          ["Sottoscrivibile entro il", this.expiry(biz?"gasBiz":"gasDom")],
+          ["Condizioni valide per", "12 mesi"],
+        ],
       });
 
       // ---- GAS BUSINESS FIX (dal 08/10/2026): prezzo bloccato, solo switch ----
@@ -863,6 +889,13 @@ const FASTWEB = {
           note:`Prezzo gas bloccato ${money(pFix)} €/Smc per 24 mesi · vendibile solo in Switch · attivabile in DUAL o upsell su cliente Fastweb Luce · Scadenza offerta: ${this.expiry("gasBizFix")}`,
           validita:"24 mesi",
           requiresLuce:true,
+          pdfCond:[
+            ["Prezzo gas", `€ ${money(pFix)}/Smc (prezzo fisso)`],
+            ...pdfCanoneRows("Commercializzazione", cFix, this.GAS_BIZ_FIX_CANONE_LISTINO, this.GAS_BIZ_FIX_CANONE_CONV, conv),
+            ["Sottoscrivibile entro il", this.expiry("gasBizFix")],
+            ["Condizioni valide per", "24 mesi"],
+            ["Attivazione", "solo con cambio fornitore (Switch)"],
+          ],
         });
       }
     }
@@ -1244,6 +1277,8 @@ const ALPERIA = {
       const nMesi = svc.mesi.length;
       this.OFFERTE.filter(o=>o.cliente===cli && o.fornitura===servizio && !offertaScaduta(o) && !offertaNonAncoraVendibile(o)).forEach(o=>{
         let prezzo, note, tipoBadge, tipoPrezzo;
+        const pdfCond = [];
+        const uA = servizio==="luce" ? "kWh" : "Smc", lblP = servizio==="luce" ? "Prezzo energia" : "Prezzo gas";
         if(o.tipo==="fissa"){
           let base=o.prezzoFisso, fasceNote="";
           if(o.fasce){ base=(o.fasce.F1+o.fasce.F2+o.fasce.F3)/3; fasceNote=` (media fasce F1 ${o.fasce.F1.toFixed(3)} · F2 ${o.fasce.F2.toFixed(3)} · F3 ${o.fasce.F3.toFixed(3)})`; }
@@ -1252,8 +1287,12 @@ const ALPERIA = {
             ? `Prezzo fisso ${base.toFixed(4)} €/kWh${fasceNote} (lordo CTE, perdite incluse) + disp. ${DISP.toFixed(4)} €/kWh`
             : `Prezzo fisso ${base.toFixed(4)} €/Smc`;
           tipoBadge={text:"Prezzo Fisso",cls:"b-fix"}; tipoPrezzo="fissa";
+          pdfCond.push([lblP, `€ ${fmtN(base,4)}/${uA} (prezzo fisso${servizio==="luce"?", perdite di rete incluse":""})`]);
+          if(o.fasce) pdfCond.push(["Prezzi per fascia", `F1 ${fmtN(o.fasce.F1,4)} · F2 ${fmtN(o.fasce.F2,4)} · F3 ${fmtN(o.fasce.F3,4)} €/kWh`]);
         } else {
           const spread=o.spread[0];
+          pdfCond.push([lblP, servizio==="luce" ? `PUN + 10% perdite di rete + € ${fmtN(spread,4)}/kWh` : `PSV + € ${fmtN(spread,4)}/Smc`]);
+          if(o.spread.length>1) pdfCond.push(["Dal 2° anno", `spread € ${fmtN(o.spread[1],4)}/${uA}`]);
           const punConPerdite = idx*(1+this.PERDITE_RETE);
           prezzo = servizio==="luce" ? punConPerdite+spread+DISP : idx+spread;
           note = servizio==="luce"
@@ -1269,6 +1308,11 @@ const ALPERIA = {
         if(o.pcv.length>1) note += ` · PCV per anno: ${o.pcv.map((v,i)=>`${i+1}° € ${v}`).join(", ")}`;
         if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
         if(o.nota) note += ` · ⚠ ${o.nota}`;
+        if(servizio==="luce") pdfCond.push(["Dispacciamento (stima)", `€ ${fmtN(DISP,4)}/kWh`]);
+        pdfCond.push(["Quota fissa (PCV)", o.pcv.length>1
+          ? o.pcv.map((v,i)=>`${i+1}° anno € ${fmtN(v,0)}`).join(" · ")
+          : `€ ${moneyG(o.pcv[0])}/anno (€ ${moneyG(o.pcv[0]/12)}/mese)`]);
+        if(o.scadenza) pdfCond.push(["Sottoscrivibile entro il", o.scadenza]);
         const bollino = this.bolliniOfferte[this._key(o)] || null;
         out.push({
           brandId:this.id, brandLabel:this.label, brandColor:this.color,
@@ -1285,6 +1329,7 @@ const ALPERIA = {
             {label:"Totale offerta", value:"€ "+money(tot), tot:true},
           ],
           note, validita:null,
+          pdfCond, pdfNota: o.nota ? o.nota.replace(/gia attiva/,"già attiva")+"." : "",
         });
       });
     };
@@ -1411,6 +1456,27 @@ const SORGENIA = {
         if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
         if(o.nota) note += ` · ⚠ ${o.nota}`;
 
+        // Condizioni economiche per il PDF (valori netti usati nel calcolo, con il valore CTE accanto)
+        const uS = servizio==="luce" ? "kWh" : "Smc", lblS = servizio==="luce" ? "Prezzo energia" : "Prezzo gas";
+        const pdfCond = [];
+        if(fissoOra){
+          pdfCond.push([lblS, `€ ${fmtN(o.prezzoFisso,4)}/${uS} (prezzo fisso ${o.durataFisso||"24 mesi"})`
+            + (o.prezzoFissoCte ? `, in CTE € ${fmtN(o.prezzoFissoCte,4)} con perdite di rete` : "")]);
+          if(o.dopo) pdfCond.push([(o.dopoDa||"dal 25° mese").replace(/^d/,"D"), o.dopo]);
+        } else if(fissa){
+          pdfCond.push([lblS, `PSV + € ${fmtN(fee,4)}/Smc (dopo i primi ${o.mesiFisso} mesi a prezzo fisso)`]);
+        } else {
+          pdfCond.push([lblS, `${servizio==="luce"?"PUN":"PSV"} + € ${fmtN(o.fee[annoIdx],4)}/${uS}`
+            + (o.feeCte ? ` (in CTE € ${fmtN(o.feeCte[annoIdx],5)} con perdite di rete)` : "")]);
+          if(notaOrario) pdfCond.push(["Contatore orario", `fee ridotta di € ${fmtN(o.orario,4)}/kWh`]);
+          if(annoIdx===0) pdfCond.push(["Dal 13° mese", `fee € ${fmtN(o.fee[1],4)}/${uS}`]);
+        }
+        if(servizio==="luce") pdfCond.push(["Dispacciamento (stima)", `€ ${fmtN(DISP,4)}/kWh`]);
+        pdfCond.push(["Commercializzazione", `€ ${moneyG(o.pcv)}/anno`]);
+        if(o.sconto) pdfCond.push(["Sconto fedeltà", `- ${fmtN(o.sconto[annoIdx]*100,0)}% (quota € ${moneyG(pcvAnnuo)}/anno)`]);
+        if(o.quotaVar) pdfCond.push(["Quota fissa a consumo", `€ ${fmtN(o.quotaVar,5)}/Smc`]);
+        if(o.scadenza) pdfCond.push(["Sottoscrivibile entro il", o.scadenza]);
+
         const det=[
           {label: servizio==="gas"?"Spesa gas naturale":"Spesa materia energia", value:"€ "+money(energia)},
           {label:`Quota commercializzazione € ${money(canoneMese)}/mese × ${nMesi}`, value:"€ "+money(fisso)},
@@ -1429,6 +1495,7 @@ const SORGENIA = {
           tipoPrezzo: fissa ? "fissa" : "variabile",
           dettaglio:det, note,
           validita: fissoOra ? "prezzo bloccato "+(o.durataFisso||"24 mesi") : (fissa ? "dal 13° mese, dopo il fisso" : (annoIdx===0 ? "fee 1° anno" : "fee dal 13° mese")),
+          pdfCond, pdfNota: o.nota || "",
         });
       });
     };
@@ -1609,9 +1676,34 @@ const PLENITUDE = {
         if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
         if(o.nota) note += ` · ⚠ ${o.nota}`;
 
+        // Condizioni economiche per il PDF (valori netti usati nel calcolo, con il valore CTE accanto)
+        const uP = servizio==="luce" ? "kWh" : "Smc", lblP = servizio==="luce" ? "Prezzo energia" : "Prezzo gas";
+        const pdfCond = [];
+        if(fissa){
+          pdfCond.push([lblP, `€ ${fmtN(o.prezzoFisso,4)}/${uP} (prezzo fisso)`
+            + (o.prezzoFissoCte ? `, in CTE € ${fmtN(o.prezzoFissoCte,4)} con perdite di rete` : "")]);
+        } else {
+          pdfCond.push([lblP, `${servizio==="luce"?"PUN":"PSV"} + € ${fmtN(o.spread,4)}/${uP}`
+            + (o.spreadCte ? ` (in CTE € ${fmtN(o.spreadCte,4)} con perdite di rete)` : "")]);
+        }
+        if(percDom) pdfCond.push(["Sconto domiciliazione", `- ${fmtN(o.dom.val*100,0)}% sul prezzo ${servizio==="luce"?"energia":"gas"}`]);
+        if(servizio==="luce") pdfCond.push(["Dispacciamento (stima)", `€ ${fmtN(DISP,4)}/kWh`]);
+        pdfCond.push(["Quota fissa", `€ ${moneyG(o.pcv)}/anno`]);
+        if(domicilia && o.dom && o.dom.tipo==="quota") pdfCond.push(["Sconto domiciliazione", `- € ${moneyG(o.dom.val)}/anno (quota € ${moneyG(c.pcvAnnuo)}/anno)`]);
+        pdfCond.push(["Pagamento", business ? "addebito SEPA obbligatorio" : (domicilia ? "domiciliazione bancaria (SEPA)" : "senza domiciliazione")]);
+        if(o.scadenza) pdfCond.push(["Sottoscrivibile entro il", o.scadenza]);
+        pdfCond.push(["Condizioni valide per", (fissa ? "prezzo bloccato " : "spread bloccato ")+o.durata]);
+        let pdfNota = o.nota || "";
+        if(!business && !domicilia && o.dom){
+          const conDom = this.costo(o, consumo, nMesi, idx, true);
+          pdfNota += ` Con la domiciliazione bancaria (SEPA) l'offerta costerebbe € ${moneyG(c.tot-conDom.tot)} in meno nel periodo.`;
+        }
+        if(o.fasce) pdfNota += ` Prezzi biorari: ${o.fasce} (nel calcolo si usa il prezzo monorario).`;
+
         out.push({
           brandId:this.id, brandLabel:this.label, brandColor:this.color,
           servizio, nome:"PLENITUDE "+o.nome,
+          pdfCond, pdfNota: pdfNota.trim(),
           tipoBadge: fissa ? {text:"Prezzo Fisso", cls:"b-fix"}
                            : {text: servizio==="gas"?"Indicizzata PSV":"Indicizzata PUN", cls:"b-ind"},
           base:"materia", baseLabel: servizio==="gas" ? "spesa materia gas" : "spesa materia energia",
@@ -2046,8 +2138,287 @@ function renderCard(o){
     </div>`;
 }
 
-/* ===================== PDF (finestra di stampa) ===================== */
+/* ===================== PDF PREVENTIVO (jsPDF, dai dati del calcolo) =====================
+   Stesso impianto del comparatore Fastweb: cliente -> offerta -> IL TUO RISPARMIO ->
+   CONDIZIONI ECONOMICHE -> COME ABBIAMO CALCOLATO -> note. Una sola pagina A4. */
+const PDF_BRAND = {
+  fastweb:   { dark:[70,60,130],  accent:[247,189,43],  soft:[246,244,252] },
+  plenitude: { dark:[0,112,72],   accent:[150,214,80],  soft:[240,248,244] },
+  sorgenia:  { dark:[28,49,85],   accent:[0,174,239],   soft:[241,244,249] },
+  alperia:   { dark:[0,85,120],   accent:[124,179,66],  soft:[240,246,248] },
+};
+function buildPdfModel(o){
+  const I = LAST_INPUT || {};
+  const isGas = o.servizio==="gas", S = isGas ? "Gas" : "Luce", s = isGas ? "gas" : "luce";
+  const svc = (isGas ? I.gas : I.luce) || {};
+  const biz = I.tipoCliente==="business";
+  const E = n => "€ " + moneyG(n);
+  const reE = v => { const n = parseFloat(String(v).replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".")); return isNaN(n) ? v : E(n); };
+  const notaConsumo = `Il calcolo è indicativo e si riferisce solo alla spesa per la materia ${isGas?"gas":"energia"} del periodo selezionato: non comprende IVA, accise, oneri di sistema, trasporto, gestione contatore e canone RAI.`;
+  const notaFlat = `Le offerte a canone fisso (FLAT) sono confrontate con il totale bolletta ${s} (materia, trasporto, oneri di sistema e IVA inclusi; escluso il canone RAI) e si valutano sull'intero anno. Il calcolo è indicativo.`;
+  const mesiTxt = n => `${n} ${n===1?"mese":"mesi"} analizzati`;
+  const extra = [];
+  if(o.requiresLuce && o.brandId==="fastweb") extra.push("Attivabile solo insieme a Fastweb Luce (offerta DUAL o upsell su cliente Fastweb Luce).");
+  if(o.pdfNota) extra.push(o.pdfNota);
+
+  let tiles, conds, dets, sub;
+  if(o.flat){
+    const F = FASTWEB, f = o.flat, tv = f.tiers.find(x=>x.t===f.currentT), gas = f.kind==="gas", u = gas ? "Smc" : "kWh";
+    const pDiff = o.risparmio, aDiff = o.flatAnnual ? o.flatAnnual.delta : null;
+    sub = "Canone mensile fisso · uso domestico";
+    tiles = [{ label:`Risparmio ${s} nel periodo`, value:pDiff, sub:mesiTxt(f.numMesi) }];
+    if(aDiff!=null) tiles.push({ label:`Risparmio ${s} annuo stimato`, value:aDiff, sub:`spesa annua ${E(f.spesaAnnua)} -> ${E(tv.totalAnnual)} con l'offerta` });
+    const pot = String(I.potenza||"3").replace(".",",")+" kW";
+    const rows = gas ? [
+      ...pdfCanoneRows("Canone mensile fisso", tv.monthly, tv.listino, tv.cliente, f.conv),
+      ["Oppure stagionale", `${E(F.gasFlatMonthly(tv.t,f.conv,"summer"))} apr-set · ${E(F.gasFlatMonthly(tv.t,f.conv,"winter"))} ott-mar`],
+      ["Consumi inclusi", `fino a ${numG(tv.threshold)} Smc/anno`],
+      ["Extra soglia / restituzione", `€ ${moneyG(tv.rate)}/Smc`],
+      ["Bonus consumi bassi", "+ € 0,02/Smc se consumi < 70% della soglia"],
+      ["Sottoscrivibile entro il", F.expiry("gasFlat")],
+      ["Condizioni valide per", F.GAS_FLAT_VALIDITA],
+      ["Attivazione", "solo con cambio fornitore (Switch)"],
+    ] : [
+      ...pdfCanoneRows("Canone mensile", tv.monthly, tv.listino, tv.cliente, f.conv),
+      ["Consumi inclusi", `fino a ${numG(tv.threshold)} kWh/anno` + (tv.t===4 ? ` (tolleranza fino a ${numG(tv.threshold+F.ULTRA_TOLERANCE)})` : "")],
+      ["Extra soglia / restituzione", `€ ${rate3(tv.rate)}/kWh`],
+      ["Potenza contatore", pot],
+      ["Sottoscrivibile entro il", F.expiry("flat")],
+      ["Condizioni valide per", F.flatValidita()],
+    ];
+    conds = [{ name:o.nome, tipo:s, rows }];
+    const perRows = [
+      {k:`Totale bolletta ${s} attuale`, v:E(f.totaleBolletta), bold:true},
+      {k:`Canone ${E(tv.monthly)} × ${f.numMesi} mesi`, v:E(o.costoOfferta), bold:true},
+    ];
+    if(gas){
+      let sea = 0, nS = 0, nW = 0;
+      f.mesi.forEach(k=>{ const su = F.SUMMER_MONTHS.includes(String(k).slice(0,3)); sea += F.gasFlatMonthly(tv.t,f.conv,su?"summer":"winter"); su ? nS++ : nW++; });
+      perRows.push({k:`con canone stagionale (${nW} mesi inverno, ${nS} estate)`, v:E(sea), indent:true});
+    }
+    const annRows = [
+      {k:"Consumo annuo dichiarato", v:`${numG(f.consumoAnnuo)} ${u}`},
+      {k:`Canone ${E(tv.monthly)} × 12 mesi`, v:E(tv.baseAnnual)},
+    ];
+    const rr = gas ? tv.refundRate : tv.rate;
+    const fr = x => gas ? moneyG(x) : rate3(x);
+    if(tv.extraKwh>0)  annRows.push({k:`extra soglia ${numG(tv.extraKwh)} ${u} × € ${fr(tv.rate)}`, v:"+ "+E(tv.extraAnnual), indent:true});
+    if(tv.marginKwh>0) annRows.push({k:`restituzione ${numG(tv.marginKwh)} ${u} × € ${fr(rr)}`, v:"- "+E(tv.refund), indent:true});
+    annRows.push({k:`Costo annuo con ${o.nome}`, v:E(tv.totalAnnual), bold:true});
+    if(f.spesaAnnua>0) annRows.push({k:`Spesa annua ${s} attuale dichiarata`, v:E(f.spesaAnnua), bold:true});
+    dets = [
+      { title:`${S} FLAT · ${o.periodo}`, rows:perRows, esito:pDiff, esitoLabel:`${s} nel periodo` },
+      { title:`${S} FLAT · proiezione annua`, rows:annRows, esito:aDiff, esitoLabel:`${s} annuo` },
+    ];
+    extra.unshift(gas ? "Vendibile solo in Switch, uso domestico C2-C3; 1 cambio soglia e 1 cambio modalità di fatturazione inclusi; extra soglia conteggiato fino a 1.500 Smc/anno." : "");
+  } else {
+    sub = o.tipoBadge.text + (biz ? " · Partita IVA" : " · uso domestico");
+    tiles = [{ label:`Risparmio ${s} nel periodo`, value:o.risparmio, sub:mesiTxt(o.nMesi) }];
+    conds = [{ name:o.nome, tipo:s, rows: o.pdfCond && o.pdfCond.length ? o.pdfCond
+      : [["Tipologia", o.tipoBadge.text], ...(o.validita ? [["Condizioni", o.validita]] : [])] }];
+    const consumo = isGas ? svc.smc : svc.kwh;
+    const calc = o.dettaglio.filter(r=>!r.tot && !r.sub).map(r=>({
+      k: /^Spesa /.test(r.label) ? `${isGas?"gas":"energia"} (${numG(consumo)} ${isGas?"Smc":"kWh"})` : r.label.charAt(0).toLowerCase()+r.label.slice(1),
+      v: reE(r.value), indent:true }));
+    dets = [{ title:`${S} · ${o.periodo}`, rows:[
+      {k:`Spesa attuale per la materia ${isGas?"gas":"energia"}`, v:E(o.costoAttuale), bold:true},
+      {k:"quota consumi", v:E(svc.quotaConsumi), indent:true},
+      {k:"quota fissa", v:E(svc.quotaFissa), indent:true},
+      {k:`Spesa con ${o.nome}`, v:E(o.costoOfferta), bold:true},
+      ...calc,
+    ], esito:o.risparmio, esitoLabel:`${s} nel periodo` }];
+  }
+  const pal = PDF_BRAND[o.brandId] || (()=>{ const h=o.brandColor.replace("#",""); const c=[0,2,4].map(i=>parseInt(h.substr(i,2),16)); return { dark:c.map(x=>Math.round(x*0.8)), accent:[255,255,255], soft:[244,245,248] }; })();
+  return {
+    filename: (()=>{ const f=(o.nome||"OFFERTA").toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_|_$/g,"");
+                     return /(LUCE|GAS)/.test(f) ? f : f+"_"+S.toUpperCase(); })(),
+    brand:{ label:o.brandLabel.toUpperCase(), ...pal },
+    title:o.nome.toUpperCase(), subtitle:sub,
+    cliente:[["Cliente", I.nome || "—"], ["Periodo analizzato", o.periodo]],
+    tiles, conds, dets,
+    note:[o.flat ? notaFlat : notaConsumo, ...extra].filter(Boolean).join(" "),
+    bonus:o.pdfBonus || "",
+  };
+}
+
+/* Testo compatibile con i font standard del PDF (niente emoji, segni fuori Latin-1) */
+function pdfSafe(v){
+  if(typeof v === "string") return v.replace(/[−–—]/g,"-").replace(/→/g,"->").replace(/≤/g,"<=").replace(/≥/g,">=")
+    .replace(/[^\x00-\xFF€’‘“”•…]/g,"").replace(/ {2,}/g," ").trim();
+  if(Array.isArray(v)) return v.map(pdfSafe);
+  if(v && typeof v === "object"){ const o={}; for(const k in v) o[k]=pdfSafe(v[k]); return o; }
+  return v;
+}
+
+function renderQuotePdf(m){
+  m = pdfSafe(m);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"mm", format:"a4" });
+  const BRAND_D=m.brand.dark, ACCENT=m.brand.accent, BG_SOFT=m.brand.soft,
+        DARK=[33,33,55], TEXT=[60,60,75], MUTED=[120,120,140],
+        LUCEC=[239,120,0], GASC=[2,119,189],
+        OK=[30,135,70], KO=[195,55,70], OK_BG=[226,245,232], KO_BG=[253,232,234], RULE=[222,224,234];
+  const PAGE_W=210, PAGE_H=297, L=14, W=PAGE_W-2*L, GAP=4;
+  const E = n => "€ " + moneyG(Math.abs(n));
+  let y = 0;
+  const today = (()=>{ const d=new Date(); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; })();
+  const font = (style,size,color)=>{ doc.setFont("helvetica",style); doc.setFontSize(size); doc.setTextColor(...color); };
+  const textR = (t,xr,yy)=> doc.text(t, xr - doc.getTextWidth(t), yy);
+
+  // ---- intestazione: nome brand (seconda parola in colore accento) ----
+  doc.setFillColor(...BRAND_D); doc.rect(0,0,PAGE_W,22,"F");
+  doc.setFillColor(...ACCENT); doc.rect(0,22,PAGE_W,1.5,"F");
+  const parts = m.brand.label.split(" "), w1 = parts[0], w2 = parts.slice(1).join(" ");
+  font("bold",15,[255,255,255]); doc.text(w1,L,12);
+  if(w2){ const wF = doc.getTextWidth(w1); doc.setTextColor(...ACCENT); doc.text(" "+w2,L+wF,12); }
+  font("normal",8.5,[255,255,255]); doc.text("Preventivo personalizzato",L,17.5); textR("Emesso il "+today, PAGE_W-L, 17.5);
+  y = 29;
+
+  const sectionTitle = (label)=>{
+    y += 5;
+    font("bold",9,BRAND_D); doc.text(label.toUpperCase(), L, y);
+    doc.setDrawColor(...ACCENT); doc.setLineWidth(0.7); doc.line(L, y+1.3, L+18, y+1.3);
+    y += 5;
+  };
+
+  // ---- cliente ----
+  {
+    const rows = m.cliente, rowH = 4.6, h = rows.length*rowH + 3.6;
+    doc.setFillColor(...BG_SOFT); doc.roundedRect(L, y, W, h, 1.8, 1.8, "F");
+    let cy = y + 4.8;
+    rows.forEach(([k,v])=>{ font("normal",8.6,MUTED); doc.text(k, L+4, cy); font("bold",8.6,DARK); textR(doc.splitTextToSize(v, W-50)[0], L+W-4, cy); cy += rowH; });
+    y += h + 4;
+  }
+
+  // ---- offerta ----
+  {
+    const H = 14;
+    doc.setFillColor(...BRAND_D); doc.roundedRect(L, y, W, H, 2.4, 2.4, "F");
+    doc.setFillColor(...ACCENT); doc.roundedRect(L, y, 3, H, 1.2, 1.2, "F");
+    font("bold",12.5,[255,255,255]); doc.text(doc.splitTextToSize(m.title, W-12)[0], L+8, y+6.4);
+    if(m.subtitle){ font("normal",8.5,ACCENT); doc.text(m.subtitle, L+8, y+11.2); }
+    y += H + 2;
+  }
+
+  // ---- IL TUO RISPARMIO ----
+  sectionTitle(m.tiles.length===1 && m.tiles[0].value<0 ? "Confronto con la spesa attuale" : "Il tuo risparmio");
+  {
+    const n = m.tiles.length, tw = (W - GAP*(n-1))/n, H = 19;
+    m.tiles.forEach((t,i)=>{
+      const x = L + i*(tw+GAP), ok = t.value >= 0;
+      doc.setFillColor(...(ok?OK_BG:KO_BG)); doc.roundedRect(x, y, tw, H, 2.4, 2.4, "F");
+      doc.setFillColor(...(ok?OK:KO)); doc.roundedRect(x, y, 2.4, H, 1, 1, "F");
+      const label = ok ? t.label : t.label.replace(/^Risparmio/,"Maggior costo");
+      if(n===1){
+        font("bold",9.5, ok?OK:KO); doc.text(label.toUpperCase(), x+6, y+7);
+        if(t.sub){ font("normal",7.8,TEXT); doc.text(doc.splitTextToSize(t.sub, tw-75)[0], x+6, y+13); }
+        font("bold",22,DARK); textR((ok?"":"+ ")+E(t.value), x+tw-6, y+13);
+      } else {
+        font("bold",8.4, ok?OK:KO); doc.text(doc.splitTextToSize(label.toUpperCase(), tw-10)[0], x+6, y+5.8);
+        font("bold",17,DARK); textR((ok?"":"+ ")+E(t.value), x+tw-5, y+12.8);
+        if(t.sub){ font("normal",7.6,TEXT); doc.text(doc.splitTextToSize(t.sub, tw-10)[0], x+6, y+16.8); }
+      }
+    });
+    y += H + 2;
+    if(m.tiles.length===2 && m.tiles[0].value<0 && m.tiles[1].value>=0){
+      font("italic",7.8,TEXT);
+      doc.text("Le offerte a canone fisso si valutano sull'intero anno: nel singolo periodo possono costare di più, ma sull'anno convengono.", L, y+2); y += 4.6;
+    }
+  }
+
+  // ---- CONDIZIONI ECONOMICHE ----
+  sectionTitle("Condizioni economiche");
+  {
+    const cw = W;
+    const measured = m.conds.map(c=>({ c, lines: c.rows.map(([k,v])=>{
+      font("normal",8,MUTED); const kw = doc.getTextWidth(k);
+      font("bold",8.2,DARK); const vl = doc.splitTextToSize(String(v), Math.max(30, cw - 8 - kw - 6));
+      return { k, vl, h: 4.3*vl.length };
+    }) }));
+    measured.forEach((o)=>{
+      const cardH = 7 + 2 + o.lines.reduce((a,r)=>a+r.h,0) + 1.5;
+      doc.setFillColor(...BG_SOFT); doc.roundedRect(L, y, cw, cardH, 2, 2, "F");
+      const band = o.c.tipo==="gas" ? GASC : LUCEC;
+      doc.setFillColor(...band); doc.roundedRect(L, y, cw, 7, 2, 2, "F"); doc.rect(L, y+4, cw, 3, "F");
+      font("bold",9,[255,255,255]);
+      doc.text(doc.splitTextToSize((o.c.tipo==="gas" ? "GAS · " : "LUCE · ") + o.c.name, cw-8)[0], L+4, y+4.9);
+      let cy = y + 7 + 4.6;
+      o.lines.forEach(r=>{
+        font("normal",8,MUTED); doc.text(r.k, L+4, cy);
+        font("bold",8.2,DARK); r.vl.forEach((l,j)=> textR(l, L+cw-4, cy + j*4.3));
+        cy += r.h;
+      });
+      y += cardH + 2;
+    });
+    if(m.bonus){
+      const H=8; doc.setFillColor(...ACCENT); doc.roundedRect(L, y, W, H, 2, 2, "F");
+      font("bold",8.5,DARK); doc.text(doc.splitTextToSize(m.bonus, W-8)[0], L+4, y+5.2);
+      y += H + 2;
+    }
+  }
+
+  // ---- COME ABBIAMO CALCOLATO ----
+  sectionTitle("Come abbiamo calcolato");
+  {
+    const drawDet = (d, x, w, yy)=>{
+      font("bold",8.4, /^Gas/.test(d.title) ? GASC : /^Luce/.test(d.title) ? LUCEC : BRAND_D);
+      doc.text(doc.splitTextToSize(d.title, w)[0], x, yy); yy += 4.4;
+      d.rows.forEach(r=>{
+        const ind = r.indent ? 3 : 0;
+        font(r.bold?"bold":"normal", 8.1, r.bold?DARK:TEXT);
+        const vw = doc.getTextWidth(r.v);
+        const kl = doc.splitTextToSize(r.k, w - ind - vw - 3);
+        kl.forEach((l,j)=> doc.text(l, x+ind, yy + j*3.8));
+        font(r.bold?"bold":"normal", 8.1, DARK); textR(r.v, x+w, yy);
+        yy += 4.1 + (kl.length-1)*3.8;
+      });
+      if(d.esito!=null){
+        const ok = d.esito >= 0;
+        doc.setDrawColor(...RULE); doc.setLineWidth(0.3); doc.line(x, yy-2.6, x+w, yy-2.6);
+        font("bold",8.6, ok?OK:KO);
+        doc.text((ok?"Risparmio ":"Maggior costo ") + d.esitoLabel, x, yy+0.6);
+        textR((ok?"":"+ ")+E(d.esito), x+w, yy+0.6);
+        yy += 5;
+      } else if(/annua/.test(d.title)){
+        font("italic",7.6,MUTED); doc.text("Spesa annua non dichiarata: risparmio annuo non calcolabile.", x, yy+0.4); yy += 4.6;
+      }
+      return yy + 2.5;
+    };
+    if(m.dets.length===2){
+      const cw = (W - GAP)/2;
+      const y0 = y, y1 = drawDet(m.dets[0], L, cw, y), y2 = drawDet(m.dets[1], L+cw+GAP, cw, y0);
+      doc.setDrawColor(...RULE); doc.setLineWidth(0.2); doc.line(L+cw+GAP/2, y0-3, L+cw+GAP/2, Math.max(y1,y2)-3);
+      y = Math.max(y1, y2);
+    } else {
+      m.dets.forEach(d=>{ y = drawDet(d, L, W, y); });
+    }
+  }
+
+  // ---- note ----
+  sectionTitle("Note");
+  font("normal",7.8,TEXT);
+  doc.splitTextToSize(m.note + " Preventivo non vincolante, valori stimati. Per ulteriori dettagli, contattaci!", W).forEach(l=>{ doc.text(l, L, y); y += 3.5; });
+
+  // ---- piè di pagina ----
+  doc.setDrawColor(...RULE); doc.setLineWidth(0.2); doc.line(L, PAGE_H-10, PAGE_W-L, PAGE_H-10);
+  font("normal",7.5,MUTED);
+  doc.text("Preventivo non vincolante - i valori sono stime indicative.", L, PAGE_H-5.5);
+  textR(m.brand.label, PAGE_W-L, PAGE_H-5.5);
+
+  doc.save(`Preventivo_${m.filename}.pdf`);
+}
+
 function stampaPDF(id){
+  const o=LAST_OFFERS[id]; if(!o) return;
+  if(window.jspdf && window.jspdf.jsPDF){
+    try{ renderQuotePdf(buildPdfModel(o)); return; }
+    catch(err){ console.error("PDF", err); }
+  }
+  stampaPDFStampa(id);
+}
+
+/* ===================== PDF di riserva (finestra di stampa) ===================== */
+function stampaPDFStampa(id){
   const o=LAST_OFFERS[id]; if(!o) return;
   const nome=LAST_INPUT?.nome || "—";
   const ok=o.risparmio>=0; const imp=Math.abs(o.risparmio).toFixed(2);
