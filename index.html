@@ -1201,6 +1201,7 @@ function renderFlatAnnual(o){
 /* ===================== BRAND: ALPERIA ===================== */
 /* Modello Alperia (dal COMPARATORE ALPERIA):
    - tipo "fissa" (prezzoFisso; business luce = media fasce F1/F2/F3) o "index" (indice + spread[])
+   - "mista" (Power Eco Neves): prezzo fisso sui primi kWh di ogni mese, PUN + perdite + spread sul resto
    - luce: + dispacciamento 0,02 €/kWh; gas: nessun dispacciamento
    - quota fissa = PCV annuo / 12 × mesi (pcv[0] = 1° anno)
    - bollino = compenso interno (verde/giallo/rosso), mostrato solo nei risultati, MAI in PDF/WhatsApp */
@@ -1212,51 +1213,53 @@ const ALPERIA = {
      e il PUN viene maggiorato delle stesse perdite (10% in bassa tensione). */
   PERDITE_RETE:0.10,
   OFFERTE:[
-      // ---- DOMESTICO · FISSA · LUCE (famiglia Smile + Direct Energy) ----
-      { nome:"Smile Safety",  cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1760, pcv:[97],  scadenza:"30/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0200" },
-      { nome:"Smile Standard",cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.17050, pcv:[121], scadenza:"30/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0230" },
-      { nome:"Smile Clear",   cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.17930, pcv:[145], scadenza:"30/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0100" },
-      { nome:"Smile Premium", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.19910, pcv:[157], scadenza:"30/09/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,0300" },
-      { nome:"Direct Energy", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.11990, pcv:[109], scadenza:"21/09/2026", nota:"Prezzo bloccato 60 mesi, poi PUN + 0,0200" },
+      /* CTE Alperia di ottobre 2026 (cartella "26_10 - Documenti"): stessi dati
+         del COMPARATORE ALPERIA e del portale info utili. */
+      // ---- DOMESTICO · FISSA · LUCE ----
+      { nome:"Smile Safety", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1595, pcv:[109], scadenza:"26/10/2026", nota:"Prezzo bloccato 36 mesi, poi PUN + 0,02200" },
+      { nome:"Smile Standard", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1705, pcv:[121], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,02530" },
+      { nome:"Smile Clear", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1793, pcv:[145], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,01100" },
+      { nome:"Home Plus Fix", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.17985, pcv:[180], scadenza:"26/10/2026", nota:"Prezzo bloccato 36 mesi, poi PUN + 0,02970 · solo cambio fornitore o cambio offerta" },
+      { nome:"Smile Premium", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1991, pcv:[157], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,03300" },
 
-      // ---- DOMESTICO · FISSA · GAS (CTE del 22/09/2026) ----
-      { nome:"Gas Smile Clear", cliente:"domestico", tipo:"fissa", fornitura:"gas", prezzoFisso:0.5990, pcv:[144], scadenza:"10/10/2026", nota:"Solo con luce Alperia abbinata o gia attiva · solo cambio fornitore o cambio offerta · bloccato 36 mesi, poi PSV + 0,0800" },
+      // ---- DOMESTICO · FISSA · GAS ----
+      { nome:"Gas Smile Clear", cliente:"domestico", tipo:"fissa", fornitura:"gas", prezzoFisso:0.599, pcv:[144], scadenza:"26/10/2026", nota:"Solo con luce Alperia abbinata o gia attiva · Prezzo bloccato 36 mesi, poi PSV + 0,0800 · solo cambio fornitore o cambio offerta" },
 
       // ---- DOMESTICO · INDEX · LUCE ----
-      { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0000],        pcv:[145],        scadenza:"10/10/2026" },
-      { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0000],        pcv:[181],        scadenza:"10/10/2026" },
-      { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0110],        pcv:[109,97,85],  scadenza:"10/10/2026" },
-      { nome:"Terzo Tempo",   cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0110],        pcv:[121,121,61], scadenza:"10/10/2026" },
-      { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.01485],        pcv:[109],        scadenza:"10/10/2026" },
-      { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.02200,0.03300], pcv:[157],        scadenza:"10/10/2026" },
-      { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0264],        pcv:[121],        scadenza:"10/10/2026" },
-      { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0297],        pcv:[73],         scadenza:"10/10/2026" },
-      { nome:"Home Plus",     cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0297],        pcv:[157],        scadenza:"10/10/2026" },
-      { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0330],        pcv:[181],        scadenza:"10/10/2026" },
+      { nome:"Home Clear", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0], pcv:[181], scadenza:"10/11/2026" },
+      { nome:"Home Pure", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0], pcv:[145], scadenza:"10/11/2026" },
+      { nome:"Home Digital", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.011], pcv:[109,97,85], scadenza:"10/11/2026" },
+      { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.01485], pcv:[109], scadenza:"10/11/2026" },
+      { nome:"Home Pro", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0264], pcv:[121], scadenza:"10/11/2026" },
+      { nome:"Home Start", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0297], pcv:[73], scadenza:"10/11/2026" },
 
       // ---- DOMESTICO · INDEX · GAS ----
-      { nome:"Home Pure",     cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.0800],       pcv:[90],        scadenza:"10/10/2026" },
-      { nome:"Home Clear",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.0800],       pcv:[180],       scadenza:"10/10/2026" },
-      { nome:"Home Digital",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1100],       pcv:[108,96,84], scadenza:"10/10/2026" },
-      { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1200],       pcv:[108],       scadenza:"10/10/2026" },
-      { nome:"Home Prime",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1200,0.1600],pcv:[156],       scadenza:"10/10/2026" },
-      { nome:"Home Pro",      cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1600],       pcv:[120],       scadenza:"10/10/2026" },
-      { nome:"Home Start",    cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1600],       pcv:[72],        scadenza:"10/10/2026" },
-      { nome:"Home Premium",  cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.1600],       pcv:[180],       scadenza:"10/10/2026" },
+      { nome:"Home Clear", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.08], pcv:[180], scadenza:"10/11/2026" },
+      { nome:"Home Pure", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.08], pcv:[90], scadenza:"10/11/2026" },
+      { nome:"Home Digital", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.11], pcv:[108,96,84], scadenza:"10/11/2026" },
+      { nome:"Home Standard", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.12], pcv:[108], scadenza:"10/11/2026" },
+      { nome:"Home Premium", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16], pcv:[180], scadenza:"10/11/2026" },
+      { nome:"Home Pro", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16], pcv:[120], scadenza:"10/11/2026" },
+      { nome:"Home Start", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16], pcv:[72], scadenza:"10/11/2026" },
+
+      // ---- BUSINESS · FISSA · LUCE (Power Fix a fasce, Power Eco a struttura mista) ----
+      { nome:"Power Fix Braies", cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.1771,F2:0.1859,F3:0.1694}, pcv:[189], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,03190" },
+      { nome:"Power Fix Caldaro", cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.176,F2:0.1848,F3:0.1683}, pcv:[132], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,02200" },
+      { nome:"Power Eco Neves", cliente:"business", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1738, mista:{soglia:1000,spreadOltre:0.011}, pcv:[199], scadenza:"26/10/2026", nota:"Primi 1.000 kWh/mese a prezzo fisso, il resto a PUN + 0,01100 · Prezzo bloccato 24 mesi, poi PUN + 0,03960" },
 
       // ---- BUSINESS · INDEX · LUCE ----
-      { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.00869],        pcv:[149], scadenza:"10/10/2026" },
-      { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.01309],        pcv:[132], scadenza:"10/10/2026" },
-      { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.01529],        pcv:[149], scadenza:"10/10/2026" },
-      { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"luce", spread:[0.01716],        pcv:[149], scadenza:"10/10/2026" },
-      { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"luce", spread:[0.00792,0.01716], pcv:[199], scadenza:"10/10/2026" },
+      { nome:"Neves", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.00792,0.01716], pcv:[199], scadenza:"10/11/2026" },
+      { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.00869], pcv:[149], scadenza:"10/11/2026" },
+      { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.01309], pcv:[132], scadenza:"10/11/2026" },
+      { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.01529], pcv:[149], scadenza:"10/11/2026" },
+      { nome:"Braies", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.01716], pcv:[149], scadenza:"10/11/2026" },
 
       // ---- BUSINESS · INDEX · GAS (spread + QAC 0,0800 + compensazione CO2 0,0190) ----
-      { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.0990],        pcv:[149], scadenza:"10/10/2026" },
-      { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1190],        pcv:[132], scadenza:"10/10/2026" },
-      { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390],        pcv:[149], scadenza:"10/10/2026" },
-      { nome:"Braies",  cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1790],        pcv:[149], scadenza:"10/10/2026" },
-      { nome:"Neves",   cliente:"business", tipo:"index", fornitura:"gas", spread:[0.1390,0.1790], pcv:[189], scadenza:"10/10/2026" }
+      { nome:"Vernago", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.099], pcv:[149], scadenza:"10/11/2026" },
+      { nome:"Caldaro", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.119], pcv:[132], scadenza:"10/11/2026" },
+      { nome:"Carezza", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.139], pcv:[149], scadenza:"10/11/2026" },
+      { nome:"Neves", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.139,0.179], pcv:[189], scadenza:"10/11/2026" },
+      { nome:"Braies", cliente:"business", tipo:"index", fornitura:"gas", spread:[0.179], pcv:[149], scadenza:"10/11/2026" }
     ],
   /* BOLLINI (compenso interno) — chiave "<nome>__<tipo>__<fornitura>", valori "verde"|"giallo"|"rosso".
      Da compilare quando assegnati. Non compare MAI nei documenti al cliente. */
@@ -1293,6 +1296,17 @@ const ALPERIA = {
           note = servizio==="luce"
             ? `Prezzo fisso ${base.toFixed(4)} €/kWh${fasceNote} (lordo CTE, perdite incluse) + disp. ${DISP.toFixed(4)} €/kWh`
             : `Prezzo fisso ${base.toFixed(4)} €/Smc`;
+          if(o.mista && servizio==="luce"){
+            /* primi kWh di ogni mese a prezzo fisso, il resto indicizzato (consumo medio mensile del periodo) */
+            const punConPerdite = idx*(1+this.PERDITE_RETE);
+            const kwhFissi = Math.min(consumo/nMesi, o.mista.soglia)*nMesi;
+            const kwhOltre = Math.max(0, consumo-kwhFissi);
+            prezzo = (kwhFissi*(base+DISP) + kwhOltre*(punConPerdite+o.mista.spreadOltre+DISP)) / consumo;
+            note = `Struttura mista: ${Math.round(kwhFissi)} kWh a prezzo fisso ${base.toFixed(4)} €/kWh`
+              + (kwhOltre>0 ? ` + ${Math.round(kwhOltre)} kWh a PUN con perdite ${punConPerdite.toFixed(4)} + spread ${o.mista.spreadOltre.toFixed(4)} €/kWh` : "")
+              + ` + disp. ${DISP.toFixed(4)} €/kWh`;
+            pdfCond.push(["Struttura mista", `prezzo fisso sui primi ${fmtN(o.mista.soglia,0)} kWh/mese, oltre PUN + perdite + € ${fmtN(o.mista.spreadOltre,4)}/kWh`]);
+          }
           tipoBadge={text:"Prezzo Fisso",cls:"b-fix"}; tipoPrezzo="fissa";
           pdfCond.push([lblP, `€ ${fmtN(base,4)}/${uA} (prezzo fisso${servizio==="luce"?", perdite di rete incluse":""})`]);
           if(o.fasce) pdfCond.push(["Prezzi per fascia", `F1 ${fmtN(o.fasce.F1,4)} · F2 ${fmtN(o.fasce.F2,4)} · F3 ${fmtN(o.fasce.F3,4)} €/kWh`]);
