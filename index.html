@@ -727,6 +727,10 @@ const FASTWEB = {
   _newOffersActive(){ return new Date() >= new Date(2026,7,28); },
   _sep26Active(){ return new Date() >= new Date(2026,8,26); },
   _oct08Active(){ return new Date() >= new Date(2026,9,8); },
+  // LUCE FIX PER TE — Limited Edition 22-31/10/2026: domestico, anche non clienti, 0,119 €/kWh + disp.,
+  // commercializzazione 12 €/mese uguale per tutti, prezzo fisso 24 mesi, solo Switch
+  FIX_PER_TE_RAW:0.119, FIX_PER_TE_CANONE:12,
+  fixPerTeActive(){ const t=new Date(); return t>=new Date(2026,9,22) && t<=new Date(2026,9,31,23,59,59); },
 
   // GAS BUSINESS FIX (dal 08/10/2026): prezzo bloccato 24 mesi, solo switch
   GAS_BIZ_FIX_PRICE:0.80, GAS_BIZ_FIX_CANONE_LISTINO:20, GAS_BIZ_FIX_CANONE_CONV:10,
@@ -829,6 +833,36 @@ const FASTWEB = {
           pdfBonus: (!biz && this.welcomeBonusActive()) ? "WELCOME BONUS LUCE: 15€ di sconto per i nuovi clienti, in 3 rate da 5€ nelle prime bollette utili" : "",
         });
       });
+
+      // ---- LUCE FIX PER TE (Limited Edition, solo domestico) ----
+      if(!biz && this.fixPerTeActive()){
+        const pk = this.FIX_PER_TE_RAW + this.DISP;
+        const energia = input.luce.kwh*pk, fisso = this.FIX_PER_TE_CANONE*nMesi, tot = energia+fisso;
+        out.push({
+          brandId:this.id, brandLabel:this.label, brandColor:this.color,
+          servizio:"luce", nome:"FASTWEB LUCE FIX PER TE",
+          tipoBadge:{text:"Prezzo Fisso",cls:"b-fix"},
+          base:"materia", baseLabel:"spesa materia energia",
+          periodo:monthLabels(input.luce.mesi), nMesi,
+          costoAttuale:input.luce.attuale, costoOfferta:tot, risparmio:input.luce.attuale-tot,
+          dettaglio:[
+            {label:"Spesa materia energia", value:"€ "+money(energia)},
+            {label:`Commercializzazione € ${money(this.FIX_PER_TE_CANONE)}/mese × ${nMesi} (clienti e non clienti)`, value:"€ "+money(fisso)},
+            {label:"Totale offerta", value:"€ "+money(tot), tot:true},
+          ],
+          note:`LIMITED EDITION · Prezzo bloccato 24 mesi ${money(this.FIX_PER_TE_RAW)} + disp. ${money(this.DISP)} = ${money(pk)} €/kWh · proponibile anche ai non clienti Fastweb · solo Switch · Scadenza offerta: 31 ottobre`,
+          validita:"24 mesi",
+          pdfCond:[
+            ["Prezzo energia", `€ ${rate3(this.FIX_PER_TE_RAW)}/kWh (prezzo fisso)`],
+            ["Dispacciamento", `€ ${rate3(this.DISP)}/kWh`],
+            ["Commercializzazione", `€ ${moneyG(this.FIX_PER_TE_CANONE)}/mese, uguale per clienti e non clienti`],
+            ["Sottoscrivibile entro il", "31 ottobre"],
+            ["Condizioni valide per", "24 mesi (prezzo fisso)"],
+            ["Attivazione", "solo con cambio fornitore (Switch)"],
+          ],
+          pdfNota:"Offerta Limited Edition, proponibile anche ai non clienti Fastweb.",
+        });
+      }
 
       // ---- FLAT A FASCE (solo domestico, potenza <=6kW, consumo <=5000) ----
       const potOk = input.potenza!=="altro";
@@ -2797,6 +2831,10 @@ function renderRiepilogo(){
 
     <div class="riep-head">A CONSUMO — DOMESTICO ${seg}</div>
     <div class="riep-block">
+      ${F.fixPerTeActive() ? `<div class="t">Fastweb Luce FIX PER TE <span class="badge b-fix">LIMITED EDITION</span></div>
+      <div class="ln">Commercializzazione <strong>€${F.FIX_PER_TE_CANONE}/mese</strong> (clienti e non clienti) + Energia <strong>€${rate3(F.FIX_PER_TE_RAW)}/kWh</strong> (+ disp. €${rate3(F.DISP)} → ${rate3(F.FIX_PER_TE_RAW+F.DISP)} €/kWh)</div>
+      <div class="hint">Dal 22 al 31 ottobre · prezzo fisso 24 mesi · solo Switch · proponibile anche ai non clienti</div>
+      <div class="div"></div>` : ""}
       <div class="t">Fastweb Luce Fix</div>
       <div class="ln">Canone <strong>€${cDom}/mese</strong> (${who}) + Energia <strong>€${rate3(F.domFixRaw())}/kWh</strong> (+ disp. €${rate3(F.DISP)} → ${rate3(F.domFixRaw()+F.DISP)} €/kWh)</div>
       <div class="hint">Validità 12 mesi</div>
