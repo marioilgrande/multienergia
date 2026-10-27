@@ -355,16 +355,9 @@
         </label>
       </div>
 
-      <div class="grid2" data-brand-req="sorgenia">
+      <div data-brand-req="sorgenia">
         <div class="field">
-          <label class="lbl" for="annoContrattuale">Anno contrattuale <span class="hint">(Sorgenia)</span></label>
-          <select id="annoContrattuale">
-            <option value="1">1° anno di fornitura</option>
-            <option value="2">Dal 13° mese</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="toggle" for="contatoreOrario" style="margin-top:24px">
+          <label class="toggle" for="contatoreOrario">
             <input type="checkbox" id="contatoreOrario">
             <span class="track"><span class="thumb"></span></span>
             <span>Contatore orario <span class="hint">(Sorgenia)</span></span>
@@ -1471,7 +1464,9 @@ const SORGENIA = {
   compute(input){
     const out=[];
     const cli = input.tipoCliente;
-    const annoIdx = input.sorgeniaAnno === 2 ? 1 : 0;
+    // Sempre condizioni del 1° anno: il campo "anno contrattuale" è stato tolto il 27/10/2026
+    // (confondeva gli utenti). annoIdx resta per leggere il primo valore di fee/feeCte/sconto.
+    const annoIdx = 0;
     const orario = !!input.contatoreOrario;
     const DISP = this.DISP_LUCE;
 
@@ -1530,7 +1525,6 @@ const SORGENIA = {
         if(fissa) note += fissoOra
           ? ` · ${(o.dopoDa||"dal 25° mese").replace(/^d/,"D")}: ${o.dopo}`
           : ` · Prezzo fisso dei primi ${o.mesiFisso} mesi: ${o.prezzoFisso.toFixed(4)} €/Smc`;
-        else if(annoIdx===0) note += ` · Dal 13° mese la fee passa a ${o.fee[1].toFixed(4)}`;
         if(o.scadenza){ const g=giorniAllaScadenza(o); note += ` · Sottoscrivibile fino al ${o.scadenza}` + (g!==null && g<=14 ? ` (${g} giorni)` : ""); }
         if(o.nota) note += ` · ⚠ ${o.nota}`;
 
@@ -1547,7 +1541,6 @@ const SORGENIA = {
           pdfCond.push([lblS, `${servizio==="luce"?"PUN":"PSV"} + € ${fmtN(o.fee[annoIdx],4)}/${uS}`
             + (o.feeCte ? ` (in CTE € ${fmtN(o.feeCte[annoIdx],5)} con perdite di rete)` : "")]);
           if(notaOrario) pdfCond.push(["Contatore orario", `fee ridotta di € ${fmtN(o.orario,4)}/kWh`]);
-          if(annoIdx===0) pdfCond.push(["Dal 13° mese", `fee € ${fmtN(o.fee[1],4)}/${uS}`]);
         }
         if(servizio==="luce") pdfCond.push(["Dispacciamento (stima)", `€ ${fmtN(DISP,4)}/kWh`]);
         pdfCond.push(["Commercializzazione", `€ ${moneyG(o.pcv)}/anno`]);
@@ -1572,7 +1565,7 @@ const SORGENIA = {
           costoAttuale:svc.attuale, costoOfferta:tot, risparmio:svc.attuale-tot,
           tipoPrezzo: fissa ? "fissa" : "variabile",
           dettaglio:det, note,
-          validita: fissoOra ? "prezzo bloccato "+(o.durataFisso||"24 mesi") : (fissa ? "dal 13° mese, dopo il fisso" : (annoIdx===0 ? "fee 1° anno" : "fee dal 13° mese")),
+          validita: fissoOra ? "prezzo bloccato "+(o.durataFisso||"24 mesi") : (fissa ? "dopo il prezzo fisso" : "12 mesi"),
           pdfCond, pdfNota: o.nota || "",
         });
       });
@@ -1996,7 +1989,6 @@ function gatherInput(){
     nome: document.getElementById("nome").value.trim(),
     tipoCliente: document.getElementById("tipoCliente").value,
     convergenza: document.getElementById("convergenza").checked,
-    sorgeniaAnno: parseInt(document.getElementById("annoContrattuale")?.value || "1", 10),
     contatoreOrario: !!document.getElementById("contatoreOrario")?.checked,
     plenDomiciliazione: !!document.getElementById("plenDomiciliazione")?.checked,
     plenPolizza: !!document.getElementById("plenPolizza")?.checked,
