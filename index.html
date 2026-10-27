@@ -1243,14 +1243,13 @@ const ALPERIA = {
       /* CTE Alperia di ottobre 2026 (cartella "26_10 - Documenti"): stessi dati
          del COMPARATORE ALPERIA e del portale info utili. */
       // ---- DOMESTICO · FISSA · LUCE ----
-      { nome:"Smile Safety", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1595, pcv:[109], scadenza:"26/10/2026", nota:"Prezzo bloccato 36 mesi, poi PUN + 0,02200" },
-      { nome:"Smile Standard", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1705, pcv:[121], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,02530" },
-      { nome:"Smile Clear", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1793, pcv:[145], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,01100" },
-      { nome:"Home Plus Fix", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.17985, pcv:[180], scadenza:"26/10/2026", nota:"Prezzo bloccato 36 mesi, poi PUN + 0,02970 · solo cambio fornitore o cambio offerta" },
-      { nome:"Smile Premium", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1991, pcv:[157], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,03300" },
+      { nome:"Smile Safety", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1694, pcv:[109], scadenza:"10/11/2026", nota:"Prezzo bloccato 36 mesi, poi PUN + 0,02200" },
+      { nome:"Smile Standard", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1925, pcv:[121], scadenza:"10/11/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,02530" },
+      { nome:"Smile Clear", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.19998, pcv:[145], scadenza:"10/11/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,01100" },
+      { nome:"Home Plus Fix", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.19998, pcv:[180], scadenza:"10/11/2026", nota:"Prezzo bloccato 36 mesi, poi PUN + 0,02970 · solo cambio fornitore o cambio offerta" },
+      { nome:"Smile Premium", cliente:"domestico", tipo:"fissa", fornitura:"luce", prezzoFisso:0.2189, pcv:[157], scadenza:"10/11/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,03300" },
 
       // ---- DOMESTICO · FISSA · GAS ----
-      { nome:"Gas Smile Clear", cliente:"domestico", tipo:"fissa", fornitura:"gas", prezzoFisso:0.599, pcv:[144], scadenza:"26/10/2026", nota:"Solo con luce Alperia abbinata o gia attiva · Prezzo bloccato 36 mesi, poi PSV + 0,0800 · solo cambio fornitore o cambio offerta" },
 
       // ---- DOMESTICO · INDEX · LUCE ----
       { nome:"Home Clear", cliente:"domestico", tipo:"index", fornitura:"luce", spread:[0.0], pcv:[181], scadenza:"10/11/2026" },
@@ -1269,10 +1268,8 @@ const ALPERIA = {
       { nome:"Home Pro", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16], pcv:[120], scadenza:"10/11/2026" },
       { nome:"Home Start", cliente:"domestico", tipo:"index", fornitura:"gas", spread:[0.16], pcv:[72], scadenza:"10/11/2026" },
 
-      // ---- BUSINESS · FISSA · LUCE (Power Fix a fasce, Power Eco a struttura mista) ----
-      { nome:"Power Fix Braies", cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.1771,F2:0.1859,F3:0.1694}, pcv:[189], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,03190" },
-      { nome:"Power Fix Caldaro", cliente:"business", tipo:"fissa", fornitura:"luce", fasce:{F1:0.176,F2:0.1848,F3:0.1683}, pcv:[132], scadenza:"26/10/2026", nota:"Prezzo bloccato 24 mesi, poi PUN + 0,02200" },
-      { nome:"Power Eco Neves", cliente:"business", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1738, mista:{soglia:1000,spreadOltre:0.011}, pcv:[199], scadenza:"26/10/2026", nota:"Primi 1.000 kWh/mese a prezzo fisso, il resto a PUN + 0,01100 · Prezzo bloccato 24 mesi, poi PUN + 0,03960" },
+      // ---- BUSINESS · FISSA · LUCE (Power Eco a struttura mista; Power Fix chiuse il 26/10/2026) ----
+      { nome:"Power Eco Neves", cliente:"business", tipo:"fissa", fornitura:"luce", prezzoFisso:0.1958, mista:{soglia:1000,spreadOltre:0.011}, pcv:[199], scadenza:"10/11/2026", nota:"Primi 1.000 kWh/mese a prezzo fisso, il resto a PUN + 0,01100 · Prezzo bloccato 24 mesi, poi PUN + 0,03960" },
 
       // ---- BUSINESS · INDEX · LUCE ----
       { nome:"Neves", cliente:"business", tipo:"index", fornitura:"luce", spread:[0.00792,0.01716], pcv:[199], scadenza:"10/11/2026" },
