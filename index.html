@@ -385,7 +385,7 @@
           <label class="toggle" for="plenFibra">
             <input type="checkbox" id="plenFibra">
             <span class="track"><span class="thumb"></span></span>
-            <span>🌐 Il cliente attiva anche la fibra Plenitude: mostra Fixa Time 24 Fibra (−30% su luce e gas, quota 108 €/anno, fibra 17,90 €/mese per 24 mesi)</span>
+            <span>🌐 Il cliente attiva anche la fibra Plenitude: mostra Fixa Time 24 Fibra (quota 108 €/anno, fibra 17,90 €/mese per 24 mesi)</span>
           </label>
         </div>
         <div class="field">
@@ -1578,11 +1578,43 @@ const SORGENIA = {
 const PLENITUDE_SCAD_FIXA = "04/11/2026";  /* Fixa Time: campagna 2026.10 fino al 04/11 */
 const PLENITUDE_SCAD = "23/11/2026";       /* Trend Casa, Flexi Pertinenze, Trend Business */
 const PLENITUDE_DAL = "15/10/2026";
+const PLENITUDE_DAL_NOV = "05/11/2026";    /* aggiornamento 5/11: nuovi prezzi Fixa Time */
 const PLENITUDE = {
   id:"plenitude", label:"Plenitude", color:"#009E62",
   DISP_LUCE:0.02,
   REGOLE:"Solo cambio fornitore (switch). Niente subentri né prime attivazioni. Luce: ammesso anche switch con voltura. Gas: switch con voltura possibile dal 16/11/2026.",
   OFFERTE:[
+      /* ---------- AGGIORNAMENTO 5/11/2026: Smart chiusa il 04/11, Fixa Time 24 offerta di punta ----------
+         Dalla presentazione "new aggiornamento 5.11" (CTE non ancora ricevute). Compaiono da sole dal 05/11. */
+      { nome:"Fixa Time 24 Luce", fam:"Fixa Time 24", cliente:"domestico", fornitura:"luce",
+        tipo:"fissa", prezzoFisso:0.149, prezzoFissoCte:0.1639, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        fasce:"F1 0,1694 · F23 0,1607 €/kWh",
+        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
+        nota:"Offerta di punta: prezzo fisso 24 mesi, energia 100% rinnovabile certificata, cambio prodotto gratuito." },
+      { nome:"Fixa Time 24 Gas", fam:"Fixa Time 24", cliente:"domestico", fornitura:"gas",
+        tipo:"fissa", prezzoFisso:0.79, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
+        nota:"Offerta di punta: prezzo fisso 24 mesi riferito a PCS 0,03852 GJ/Smc, cambio prodotto gratuito." },
+      { nome:"Fixa Time 24 Fibra Luce", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"luce",
+        tipo:"fissa", prezzoFisso:0.149, prezzoFissoCte:0.1639, pcv:108, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        fibra:true, fasce:"F1 0,1694 · F23 0,1607 €/kWh",
+        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
+        nota:"Solo insieme alla fibra Plenitude: quota fissa 108 €/anno invece di 144 e fibra a 17,90 €/mese per 24 mesi. Cambio prodotto gratuito." },
+      { nome:"Fixa Time 24 Fibra Gas", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"gas",
+        tipo:"fissa", prezzoFisso:0.79, pcv:108, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        fibra:true,
+        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
+        nota:"Solo insieme alla fibra Plenitude: quota fissa 108 €/anno invece di 144 e fibra a 17,90 €/mese per 24 mesi. Cambio prodotto gratuito." },
+      { nome:"Fixa Time 12 Luce", fam:"Fixa Time 12", cliente:"domestico", fornitura:"luce",
+        tipo:"fissa", prezzoFisso:0.215, prezzoFissoCte:0.2365, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
+        fasce:"F1 0,2411 · F23 0,2339 €/kWh",
+        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
+        nota:"Prezzo fisso 12 mesi, quota fissa più bassa del listino. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
+      { nome:"Fixa Time 12 Gas", fam:"Fixa Time 12", cliente:"domestico", fornitura:"gas",
+        tipo:"fissa", prezzoFisso:1.00, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
+        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
+        nota:"Prezzo fisso 12 mesi riferito a PCS 0,03852 GJ/Smc. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
+
     /* ---------- DOMESTICO · FIXA TIME 24 SMART (Special Days -30% per 24 mesi) ----------
        Luce: CTE 0,1455 €/kWh = 0,2079 × 0,70 (lordo perdite) → netto 0,189 × 0,70 = 0,1323 */
     { nome:"Fixa Time 24 Smart Luce", fam:"Fixa Time 24 Smart", cliente:"domestico", fornitura:"luce",
@@ -1698,7 +1730,7 @@ const PLENITUDE = {
       const prezzo = o.tipo==="fissa"
         ? `${fmtN(o.prezzoFissoCte||o.prezzoFisso,4)} ${u} fisso ${o.durata}`
         : `${o.fornitura==="luce"?"PUN":"PSV"} + ${fmtN(v, v<0.1?4:2)} ${u}, spread bloccato ${o.durata}`;
-      const extra=[o.polizza?"solo con polizza Zurich NoPensieri":"", o.fibra?"solo insieme alla fibra (fibra 17,90 €/mese per 24 mesi)":"", o.pertinenza?"solo pertinenze (box, cantine)":"", o.cte?"":"CTE del 15/10 in arrivo",
+      const extra=[o.polizza?"solo con polizza Zurich NoPensieri":"", o.fibra?"solo insieme alla fibra (fibra 17,90 €/mese per 24 mesi)":"", o.pertinenza?"solo pertinenze (box, cantine)":"", o.cte?"":"CTE in arrivo",
         o.dom?("domiciliazione: "+(o.dom.tipo==="quota"?`−${fmtN(o.dom.val,0)} €/anno sulla quota fissa`:`−${fmtN(o.dom.val*100,0)}% sull'energia`)):"",
         o.esaurimento?"salvo esaurimento anticipato":""].filter(Boolean).join(" · ");
       return {cliente:o.cliente, servizio:o.fornitura, nome:o.nome, prezzo, quota:`${fmtN(o.pcv,0)} €/anno`, scadenza:o.scadenza, extra};
@@ -1767,7 +1799,7 @@ const PLENITUDE = {
             + (o.spreadCte ? ` (in CTE € ${fmtN(o.spreadCte,4)} con perdite di rete)` : "")]);
         }
         if(o.specialDays) pdfCond.push(["Sconto Special Days", "- 30% per 24 mesi, già incluso nel prezzo"]);
-        if(o.fibra) pdfCond.push(["Sconto abbinamento fibra", "- 30% sul prezzo e - € 3/mese sulla quota fissa, già inclusi"]);
+        if(o.fibra) pdfCond.push(["Sconto abbinamento fibra", o.dom.prezzo!=null ? "- 30% sul prezzo e - € 3/mese sulla quota fissa, già inclusi" : "- € 3/mese sulla quota fissa, già incluso"]);
         if(percDom) pdfCond.push(["Sconto domiciliazione", `- ${fmtN(o.dom.val*100,0)}% sul prezzo ${servizio==="luce"?"energia":"gas"}`]);
         if(servizio==="luce") pdfCond.push(["Dispacciamento (stima)", `€ ${fmtN(DISP,4)}/kWh`]);
         pdfCond.push(["Quota fissa", `€ ${moneyG(o.pcv)}/anno`]);
