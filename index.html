@@ -720,6 +720,8 @@ const FASTWEB = {
   _newOffersActive(){ return new Date() >= new Date(2026,7,28); },
   _sep26Active(){ return new Date() >= new Date(2026,8,26); },
   _oct08Active(){ return new Date() >= new Date(2026,9,8); },
+  // Listino dal 26/10/2026: prezzi e sconti confermati, scadenze al 15 novembre, Luce Flex Business bloccata 12 mesi
+  _oct26Active(){ return new Date() >= new Date(2026,9,26); },
   // LUCE FIX PER TE — Limited Edition 22-31/10/2026: domestico, anche non clienti, 0,119 €/kWh + disp.,
   // commercializzazione 12 €/mese uguale per tutti, prezzo fisso 24 mesi, solo Switch
   FIX_PER_TE_RAW:0.119, FIX_PER_TE_CANONE:12,
@@ -756,6 +758,7 @@ const FASTWEB = {
   gasBizCanoneConv(){ return this._sep26Active() ? this.GAS_BIZ_CANONE_LISTINO-10
                            : (this._newOffersActive() ? this.GAS_BIZ_CANONE_LISTINO-20 : 10); },
   bizValidita(){ return this._newOffersActive() ? "24 mesi" : "36 mesi (anche Multisito)"; },
+  bizFlexValidita(){ return this._oct26Active() ? "12 mesi" : this.bizValidita(); },
   EXPIRY_LEGACY:"16 giugno",
   EXPIRY_NEW:{ flat:"25 settembre", fix:"25 settembre", flex:"25 settembre",
                businessFix:"25 settembre", businessFlex:"25 settembre",
@@ -763,10 +766,14 @@ const FASTWEB = {
   EXPIRY_SEP26:{ flat:"7 ottobre", fix:"7 ottobre", flex:"7 ottobre",
                  businessFix:"7 ottobre", businessFlex:"7 ottobre",
                  gasDom:"7 ottobre", gasBiz:"7 ottobre" },
+  EXPIRY_OCT26:{ flat:"15 novembre", fix:"15 novembre", flex:"15 novembre",
+                 businessFix:"15 novembre", businessFlex:"15 novembre",
+                 gasDom:"15 novembre", gasBiz:"15 novembre", gasFlat:"15 novembre", gasBizFix:"15 novembre" },
   EXPIRY_OCT08:{ flat:"25 ottobre", fix:"25 ottobre", flex:"25 ottobre",
                  businessFix:"25 ottobre", businessFlex:"25 ottobre",
                  gasDom:"25 ottobre", gasBiz:"25 ottobre", gasFlat:"25 ottobre", gasBizFix:"25 ottobre" },
   expiry(key){
+    if(this._oct26Active())      return this.EXPIRY_OCT26[key]||this.EXPIRY_LEGACY;
     if(this._oct08Active())      return this.EXPIRY_OCT08[key]||this.EXPIRY_LEGACY;
     if(this._sep26Active())      return this.EXPIRY_SEP26[key]||this.EXPIRY_LEGACY;
     if(!this._newOffersActive()) return this.EXPIRY_LEGACY;
@@ -789,7 +796,8 @@ const FASTWEB = {
       const fixRaw  = biz ? this.BIZ_FIX_RAW : this.domFixRaw();
       const flexSpr = biz ? this.BIZ_FLEX_SPREAD : this.DOM_FLEX_SPREAD;
       const prefix = biz ? "FASTWEB LUCE BUSINESS " : "FASTWEB LUCE ";
-      const validitaLuce = biz ? this.bizValidita() : "12 mesi";
+      const validitaLuceFix  = biz ? this.bizValidita() : "12 mesi";
+      const validitaLuceFlex = biz ? this.bizFlexValidita() : "12 mesi";
 
       // FIX
       [["FIX", fixRaw+this.DISP, "fix"],
@@ -814,14 +822,14 @@ const FASTWEB = {
             : `PUN medio ${pun.toFixed(4)} + spread ${money(flexSpr)} + disp. ${money(this.DISP)} €/kWh`)
             + ` · Scadenza offerta: ${this.expiry(biz ? (kind==="fix"?"businessFix":"businessFlex") : (kind==="fix"?"fix":"flex"))}`
             + (!biz && this.welcomeBonusActive() ? " · 🎁 Welcome Bonus 15€ (3 rate da 5€) per nuovi clienti" : ""),
-          validita:validitaLuce,
+          validita: kind==="fix" ? validitaLuceFix : validitaLuceFlex,
           pdfCond:[
             ["Prezzo energia", kind==="fix" ? `€ ${rate3(fixRaw)}/kWh (prezzo fisso)` : `PUN + € ${rate3(flexSpr)}/kWh`],
             ["Dispacciamento", `€ ${rate3(this.DISP)}/kWh`],
             ...pdfCanoneRows("Canone mensile", canone, biz?this.BIZ_CANONE_LISTINO:this.DOM_CANONE_LISTINO,
                              biz?this.bizCanoneConv():this.domCanoneConv(), conv),
             ["Sottoscrivibile entro il", this.expiry(biz ? (kind==="fix"?"businessFix":"businessFlex") : (kind==="fix"?"fix":"flex"))],
-            ["Condizioni valide per", validitaLuce],
+            ["Condizioni valide per", kind==="fix" ? validitaLuceFix : validitaLuceFlex],
           ],
           pdfBonus: (!biz && this.welcomeBonusActive()) ? "WELCOME BONUS LUCE: 15€ di sconto per i nuovi clienti, in 3 rate da 5€ nelle prime bollette utili" : "",
         });
@@ -2876,7 +2884,7 @@ function renderRiepilogo(){
       <div class="div"></div>
       <div class="t">Fastweb Luce Business Flex</div>
       <div class="ln">Canone <strong>€${cBiz}/mese</strong> (${who}) + Energia <strong>PUN + €${rate3(F.BIZ_FLEX_SPREAD)}/kWh</strong> (+ disp. €${rate3(F.DISP)})</div>
-      <div class="hint">Validità ${F.bizValidita()}</div>
+      <div class="hint">Validità ${F.bizFlexValidita()}</div>
       <div class="div"></div>
       <div class="t">Fastweb Gas Flex Business</div>
       <div class="ln">Commercializz. <strong>€${cGasBiz}/mese</strong> (${who}) + Gas <strong>PSV + €${money(F.GAS_BIZ_SPREAD)}/Smc</strong></div>
