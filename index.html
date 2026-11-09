@@ -48,7 +48,7 @@
   .section-label{font-size:12px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin:18px 0 8px}
 
   .field{margin-bottom:14px}
-  label.lbl{display:block; font-weight:700; margin-bottom:6px; font-size:14px}
+  .lbl{display:block; font-weight:700; margin-bottom:6px; font-size:14px}
   .hint{color:var(--muted); font-size:12px; margin-top:4px}
   input[type="text"],input[type="number"],select{
     width:100%; padding:11px 13px; border:1px solid #d3d6e6; border-radius:10px;
@@ -104,6 +104,68 @@
   .thumb{position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.25)}
   .toggle input:checked ~ .track{background:var(--accent)}
   .toggle input:checked ~ .track .thumb{transform:translateX(20px)}
+
+
+  /* ===== form a passi con schede Luce / Gas (come Fastweb, Sorgenia, Plenitude, Alperia) ===== */
+  #form{counter-reset:passo}
+  .fb-passo{margin:0 0 22px}
+  .fb-passo[hidden],.lbl[hidden]{display:none}
+  .fb-passo-t{display:flex; align-items:center; flex-wrap:wrap; gap:9px; font-weight:800; font-size:16px; margin:0 0 10px}
+  .fb-n{width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#3a7bd5); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; flex:0 0 26px}
+  .fb-n::before{counter-increment:passo; content:counter(passo)}
+  .fb-sub{color:var(--muted); font-size:12.5px; font-weight:600}
+  .fb-riga2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .fb-seg{display:flex; gap:8px; flex-wrap:wrap}
+  .fb-seg label{flex:1 1 0; min-width:130px; cursor:pointer; position:relative}
+  .fb-seg input{position:absolute; opacity:0; pointer-events:none}
+  .fb-seg span{display:block; height:100%; padding:11px 12px; border:2px solid #dfe3ee; border-radius:12px; background:#fff; font-weight:800; font-size:14px; line-height:1.25}
+  .fb-seg span small{display:block; font-weight:600; color:var(--muted); font-size:12px; margin-top:3px}
+  .fb-seg input:checked + span{border-color:var(--accent); background:#ecfbfa; box-shadow:inset 0 0 0 1px var(--accent)}
+  .fb-seg input:focus-visible + span{outline:3px solid rgba(10,186,181,.35)}
+  .fb-seg-sm span{padding:8px 10px; font-size:13px}
+  .fb-toggle{display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-weight:700; font-size:14px; margin-top:10px; line-height:1.4}
+  .fb-toggle input{width:20px; height:20px; accent-color:var(--bc,var(--accent)); flex:0 0 20px; margin:0}
+  .fb-avviso{margin-top:10px; padding:10px 12px; border-radius:10px; background:#fff7e0; border:1.5px solid #e0a82e; color:#5b4310; font-weight:600; font-size:13.5px; line-height:1.4}
+  .fb-schede{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .fb-scheda{--t:#e0a100; --ts:#7a5800; --sf:#fffaeb; --bd:#f3e2b0; --gl:rgba(224,161,0,.2);
+    background:var(--sf); border:1px solid var(--bd); border-top:5px solid var(--t); border-radius:14px; padding:14px; min-width:0; transition:opacity .2s}
+  .fb-scheda.gas{--t:#0277bd; --ts:#014f7d; --sf:#eff6fb; --bd:#cde2f0; --gl:rgba(2,119,189,.18)}
+  .fb-scheda.spenta{opacity:.42; filter:grayscale(.6)}
+  .fb-scheda.spenta .fb-campi{pointer-events:none}
+  .fb-testa{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+  .fb-ico{width:40px; height:40px; border-radius:50%; background:#fff; border:2px solid var(--t); display:flex; align-items:center; justify-content:center; font-size:21px; flex:0 0 40px}
+  .fb-testa h3{margin:0; font-size:18px; font-weight:800; color:var(--ts)}
+  .fb-testa small{display:block; font-size:12px; color:var(--muted); font-weight:600}
+  .fb-blocco{background:#fff; border:1px solid var(--bd); border-radius:11px; padding:11px 12px; margin-top:10px}
+  .fb-blocco:first-child{margin-top:0}
+  .fb-blocco-t{display:flex; align-items:center; flex-wrap:wrap; gap:6px; font-size:12px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--ts); margin:0 0 8px}
+  .fb-blocco-t > span:not(.fb-pill){font-weight:600; text-transform:none; letter-spacing:0; color:var(--muted)}
+  .fb-brand{border-left:4px solid var(--bc,var(--bd))}
+  .fb-somma span:last-child{white-space:nowrap}
+  .fb-pill{display:inline-block; padding:2px 9px; border-radius:999px; background:var(--bc,#888); color:#fff; font-size:10.5px; font-weight:800; letter-spacing:.3px}
+  .fb-cons{display:inline-block; padding:1px 7px; border-radius:999px; background:#eef6ff; color:#1f5f99; border:1px solid #c5dcf3; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px}
+  .fb-campo{margin-bottom:10px}
+  .fb-campo:last-child{margin-bottom:0}
+  .fb-campo label{font-size:13px; font-weight:700; display:block; margin-bottom:4px}
+  .fb-h{color:var(--muted); font-weight:600}
+  .fb-ci{position:relative}
+  .fb-ci input{padding-right:52px; border-color:var(--bd)}
+  .fb-ci select{border-color:var(--bd)}
+  .fb-ci input:focus,.fb-ci select:focus{border-color:var(--t); box-shadow:0 0 0 3px var(--gl)}
+  .fb-ci input{-moz-appearance:textfield; appearance:textfield}
+  .fb-ci input::-webkit-inner-spin-button,.fb-ci input::-webkit-outer-spin-button{-webkit-appearance:none; margin:0}
+  .fb-u{position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:800; color:var(--ts); pointer-events:none}
+  .fb-somma{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:10px; padding:8px 10px; border-radius:9px; background:var(--sf); font-weight:800; font-size:14px; color:var(--ts)}
+  .fb-brandbox-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .fb-brandbox{border:1px solid var(--line); border-top:4px solid var(--bc,var(--line)); border-radius:12px; padding:12px 14px; background:#fff; min-width:0}
+  .fb-brandbox .fb-toggle:first-of-type{margin-top:4px}
+  .fb-brandbox .field{margin-bottom:8px}
+  .fb-brandbox-t{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+  .fb-brandbox-t img{height:24px; width:auto; max-width:120px; object-fit:contain}
+  .fb-brandbox .fb-seg input:checked + span{border-color:var(--bc); background:#f6f7fb; box-shadow:inset 0 0 0 1px var(--bc)}
+  @media (max-width:700px){
+    .fb-riga2,.fb-schede,.fb-brandbox-grid{grid-template-columns:1fr}
+  }
 
   .btn{
     width:100%; padding:14px; border:none; border-radius:12px; font-size:17px; font-weight:800;
@@ -314,7 +376,7 @@
       <p class="hint">Attiva i brand da includere nel confronto. I brand con il lucchetto 🔒 si abilitano con il codice di attivazione.</p>
     </div>
 
-    <form id="form" class="panel" autocomplete="off">
+    <form id="form" class="panel" autocomplete="off" novalidate>
       <h2>Dati cliente e bolletta</h2>
 
       <div class="top-actions">
@@ -323,198 +385,177 @@
         <button type="button" class="btn-offerte" onclick="apriOfferte()">Offerte in corso</button>
       </div>
 
-      <div class="field">
-        <label class="lbl" for="nome">Nome e Cognome Cliente</label>
-        <input type="text" id="nome" required>
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl" for="tipoCliente">Tipo Cliente</label>
-          <select id="tipoCliente" onchange="updateFormFields()">
-            <option value="domestico">Domestico</option>
-            <option value="business">Business (P.IVA)</option>
-          </select>
-        </div>
-        <div class="field" data-brand-req="fastweb">
-          <label class="lbl" for="potenza">Potenza contatore <span class="hint">(per offerte a fasce)</span></label>
-          <select id="potenza">
-            <option value="3">3 kW</option>
-            <option value="4.5">4,5 kW</option>
-            <option value="6">6 kW</option>
-            <option value="altro">Oltre 6 kW</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field" data-brand-req="sorgenia" data-cliente="business">
-        <label class="lbl" for="segmentoBiz">Dimensione azienda <span class="hint">(offerte Sorgenia)</span></label>
-        <select id="segmentoBiz">
-          <option value="micro">Microbusiness (Mass Market)</option>
-          <option value="pmi">PMI</option>
-        </select>
-      </div>
-
-      <div class="field" data-brand-req="fastweb">
-        <label class="toggle" for="convergenza">
-          <input type="checkbox" id="convergenza">
-          <span class="track"><span class="thumb"></span></span>
-          <span>Cliente Fastweb / Vodafone (sconto convergenza)</span>
-        </label>
-      </div>
-
-      <div data-brand-req="sorgenia">
-        <div class="field">
-          <label class="toggle" for="contatoreOrario">
-            <input type="checkbox" id="contatoreOrario">
-            <span class="track"><span class="thumb"></span></span>
-            <span>Contatore orario <span class="hint">(Sorgenia)</span></span>
-          </label>
+      <!-- 1. CLIENTE -->
+      <div class="fb-passo">
+        <div class="fb-passo-t"><span class="fb-n"></span> Cliente</div>
+        <div class="grid2">
+          <div class="field">
+            <label class="lbl" for="nome">Nome e cognome</label>
+            <input type="text" id="nome" placeholder="Es. Mario Rossi" required>
+          </div>
+          <div class="field">
+            <span class="lbl">Tipo cliente</span>
+            <div class="fb-seg">
+              <label><input type="radio" name="fbTipo" value="domestico" checked><span>🏠 Domestico</span></label>
+              <label><input type="radio" name="fbTipo" value="business"><span>💼 Partita IVA</span></label>
+            </div>
+            <!-- letto dal calcolo: sincronizzato con "Tipo cliente" -->
+            <select id="tipoCliente" hidden>
+              <option value="domestico">Domestico</option>
+              <option value="business">Business (P.IVA)</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div data-brand-req="plenitude" data-cliente="domestico">
-        <div class="section-label">Opzioni Plenitude</div>
-        <div class="field">
-          <label class="toggle" for="plenDomiciliazione">
-            <input type="checkbox" id="plenDomiciliazione" checked>
-            <span class="track"><span class="thumb"></span></span>
-            <span>💳 Il cliente domicilia la bolletta (SEPA): sconto 5% su Fixa Time e Flexi, 12 €/anno sulla quota fissa di Trend Casa</span>
-          </label>
+      <!-- 2. COSA CONFRONTARE -->
+      <div class="fb-passo">
+        <div class="fb-passo-t"><span class="fb-n"></span> Cosa vuoi confrontare?</div>
+        <div class="fb-seg">
+          <label><input type="radio" name="fbModo" value="luce"><span>💡 Solo Luce<small>bolletta luce</small></span></label>
+          <label><input type="radio" name="fbModo" value="dual" checked><span>💡+🔥 Luce e Gas<small>due bollette o DUAL</small></span></label>
+          <label><input type="radio" name="fbModo" value="gas"><span>🔥 Solo Gas<small>bolletta gas</small></span></label>
         </div>
-        <div class="field">
-          <label class="toggle" for="plenPolizza">
-            <input type="checkbox" id="plenPolizza">
-            <span class="track"><span class="thumb"></span></span>
-            <span>Mostra anche Trend Casa NoPensieri (si firma solo con polizza Zurich NoPensieri)</span>
-          </label>
-        </div>
-        <div class="field">
-          <label class="toggle" for="plenFibra">
-            <input type="checkbox" id="plenFibra">
-            <span class="track"><span class="thumb"></span></span>
-            <span>🌐 Il cliente attiva anche la fibra Plenitude: mostra Fixa Time 24 Fibra (quota 108 €/anno, fibra 17,90 €/mese per 24 mesi)</span>
-          </label>
-        </div>
-        <div class="field">
-          <label class="toggle" for="plenPertinenza">
-            <input type="checkbox" id="plenPertinenza">
-            <span class="track"><span class="thumb"></span></span>
-            <span>La luce è per una pertinenza (box, cantina con contatore separato): propone Flexi Pertinenze</span>
-          </label>
-        </div>
+        <div class="fb-avviso" id="fbAvvisoGas" style="display:none">⚠ <strong>Fastweb Gas</strong> si attiva solo insieme a Fastweb Luce: con il solo gas Fastweb non entra nel confronto.</div>
       </div>
 
-      <!-- PERIODO -->
-      <div class="field">
-        <label class="toggle" for="periodiDiversi">
-          <input type="checkbox" id="periodiDiversi" onchange="togglePeriodi()">
-          <span class="track"><span class="thumb"></span></span>
-          <span>Periodi di fatturazione diversi per Luce e Gas</span>
-        </label>
-      </div>
-
-      <div class="field">
-        <label class="lbl" id="periodoLuceLabel">Periodo di fatturazione</label>
+      <!-- 3. PERIODO -->
+      <div class="fb-passo">
+        <div class="fb-passo-t"><span class="fb-n"></span> Periodo della bolletta <span class="fb-sub">(seleziona i mesi fatturati · passa sul mese per vedere PUN e PSV)</span></div>
+        <label class="lbl" id="periodoLuceLabel" hidden>Periodo di fatturazione</label>
         <div class="periodo-grid" id="periodoLuce"></div>
-      </div>
-
-      <div class="field" id="periodoGasWrap" style="display:none">
-        <label class="lbl">Periodo di fatturazione <span class="tag-gas">GAS</span></label>
-        <div class="periodo-grid" id="periodoGas"></div>
-      </div>
-
-      <!-- LUCE -->
-      <div class="section-label">Dati Luce</div>
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl" for="kwh">kWh fatturati nel periodo</label>
-          <input type="number" id="kwh" min="0" step="0.01">
-        </div>
-        <div class="field" data-brand-req="fastweb">
-          <label class="lbl" for="consumoAnnuo">Consumo annuo Luce (kWh) <span class="hint">(fasce)</span></label>
-          <input type="number" id="consumoAnnuo" min="0" step="1">
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl" for="quotaConsumiLuce">Quota consumi materia energia (€)</label>
-          <input type="number" id="quotaConsumiLuce" min="0" step="0.01">
-        </div>
-        <div class="field">
-          <label class="lbl" for="quotaFissaLuce">Quota fissa materia energia (€)</label>
-          <input type="number" id="quotaFissaLuce" min="0" step="0.01">
-        </div>
-      </div>
-      <div class="grid2" data-brand-req="fastweb">
-        <div class="field">
-          <label class="lbl" for="totaleBolletta">Totale bolletta Luce del periodo (€) <span class="hint">(fasce)</span></label>
-          <input type="number" id="totaleBolletta" min="0" step="0.01">
-        </div>
-        <div class="field">
-          <label class="lbl" for="spesaAnnua">Spesa annua Luce (€) <span class="hint">(facoltativo, fasce)</span></label>
-          <input type="number" id="spesaAnnua" min="0" step="0.01">
+        <label class="fb-toggle" id="fbToggleDiversi" for="periodiDiversi">
+          <input type="checkbox" id="periodiDiversi" onchange="togglePeriodi()">
+          La bolletta gas ha mesi diversi dalla luce
+        </label>
+        <div class="field" id="periodoGasWrap" style="display:none">
+          <label class="lbl" style="margin-top:8px">Mesi della bolletta <span class="tag-gas">GAS</span></label>
+          <div class="periodo-grid" id="periodoGas"></div>
         </div>
       </div>
 
-      <!-- GAS -->
-      <div class="section-label">Dati Gas</div>
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl" for="smc">Smc fatturati nel periodo</label>
-          <input type="number" id="smc" min="0" step="0.01">
-        </div>
-        <div class="field" data-brand-req="fastweb" data-cliente="domestico">
-          <label class="lbl" for="consumoAnnuoGas">Consumo annuo Gas (Smc) <span class="hint">(fasce)</span></label>
-          <input type="number" id="consumoAnnuoGas" min="0" step="1">
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl" for="quotaConsumiGas">Quota consumi materia gas (€)</label>
-          <input type="number" id="quotaConsumiGas" min="0" step="0.01">
-        </div>
-        <div class="field">
-          <label class="lbl" for="quotaFissaGas">Quota fissa materia gas (€)</label>
-          <input type="number" id="quotaFissaGas" min="0" step="0.01">
-        </div>
-      </div>
-      <div class="grid2" data-brand-req="fastweb" data-cliente="domestico">
-        <div class="field">
-          <label class="lbl" for="totaleBollettaGas">Totale bolletta Gas del periodo (€) <span class="hint">(fasce)</span></label>
-          <input type="number" id="totaleBollettaGas" min="0" step="0.01">
-        </div>
-        <div class="field">
-          <label class="lbl" for="spesaAnnuaGas">Spesa annua Gas (€) <span class="hint">(facoltativo, fasce)</span></label>
-          <input type="number" id="spesaAnnuaGas" min="0" step="0.01">
+      <!-- 4. DATI BOLLETTA -->
+      <div class="fb-passo">
+        <div class="fb-passo-t"><span class="fb-n"></span> Dati della bolletta</div>
+        <div class="fb-schede">
+          <!-- LUCE -->
+          <section class="fb-scheda" id="fbSchedaLuce" aria-labelledby="fbTitLuce">
+            <div class="fb-testa">
+              <span class="fb-ico" aria-hidden="true">💡</span>
+              <div><h3 id="fbTitLuce">Luce</h3><small>dalla bolletta luce</small></div>
+            </div>
+            <div class="fb-campi">
+              <div class="fb-blocco">
+                <div class="fb-blocco-t">Scontrino dell'energia <span>· per tutti i brand</span></div>
+                <div class="fb-campo"><label for="kwh">kWh fatturati</label><div class="fb-ci"><input id="kwh" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"><span class="fb-u">kWh</span></div></div>
+                <div class="fb-campo"><label for="quotaConsumiLuce">Quota per consumi <span class="fb-h">(spesa per la vendita)</span></label><div class="fb-ci"><input id="quotaConsumiLuce" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                <div class="fb-campo"><label for="quotaFissaLuce">Quota fissa <span class="fb-h">(spesa per la vendita)</span></label><div class="fb-ci"><input id="quotaFissaLuce" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                <div class="fb-somma"><span>Spesa materia energia</span><span id="fbSumLuce">€ 0,00</span></div>
+              </div>
+              <div class="fb-blocco fb-brand" data-brand-req="fastweb" data-brand-tint="fastweb">
+                <div class="fb-blocco-t"><span class="fb-pill" data-pill="fastweb"></span> Offerte FLAT a fasce</div>
+                <div class="fb-campo"><label for="totaleBolletta">Totale bolletta del periodo</label><div class="fb-ci"><input id="totaleBolletta" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                <div class="fb-riga2">
+                  <div class="fb-campo"><label for="consumoAnnuo">Consumo annuo</label><div class="fb-ci"><input id="consumoAnnuo" type="number" min="0" step="1" inputmode="numeric" placeholder="0"><span class="fb-u">kWh</span></div></div>
+                  <div class="fb-campo"><label for="potenza">Potenza</label><div class="fb-ci">
+                    <select id="potenza">
+                      <option value="3">3 kW</option>
+                      <option value="4.5">4,5 kW</option>
+                      <option value="6">6 kW</option>
+                      <option value="altro">Oltre 6 kW (no FLAT)</option>
+                    </select></div></div>
+                </div>
+                <div class="fb-campo"><label for="spesaAnnua">Spesa annua luce <span class="fb-cons">consigliata</span></label><div class="fb-ci"><input id="spesaAnnua" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Es. 1200,00"><span class="fb-u">€</span></div></div>
+              </div>
+            </div>
+          </section>
+          <!-- GAS -->
+          <section class="fb-scheda gas" id="fbSchedaGas" aria-labelledby="fbTitGas">
+            <div class="fb-testa">
+              <span class="fb-ico" aria-hidden="true">🔥</span>
+              <div><h3 id="fbTitGas">Gas</h3><small>dalla bolletta gas</small></div>
+            </div>
+            <div class="fb-campi">
+              <div class="fb-blocco">
+                <div class="fb-blocco-t">Scontrino dell'energia <span>· per tutti i brand</span></div>
+                <div class="fb-campo"><label for="smc">Smc fatturati</label><div class="fb-ci"><input id="smc" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"><span class="fb-u">Smc</span></div></div>
+                <div class="fb-campo"><label for="quotaConsumiGas">Quota per consumi <span class="fb-h">(spesa per la vendita)</span></label><div class="fb-ci"><input id="quotaConsumiGas" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                <div class="fb-campo"><label for="quotaFissaGas">Quota fissa <span class="fb-h">(spesa per la vendita)</span></label><div class="fb-ci"><input id="quotaFissaGas" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                <div class="fb-somma"><span>Spesa materia gas</span><span id="fbSumGas">€ 0,00</span></div>
+              </div>
+              <div class="fb-blocco fb-brand" data-brand-req="fastweb" data-cliente="domestico" data-brand-tint="fastweb">
+                <div class="fb-blocco-t"><span class="fb-pill" data-pill="fastweb"></span> Gas FLAT a fasce</div>
+                <div class="fb-campo"><label for="totaleBollettaGas">Totale bolletta gas del periodo</label><div class="fb-ci"><input id="totaleBollettaGas" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                <div class="fb-riga2">
+                  <div class="fb-campo"><label for="consumoAnnuoGas">Consumo annuo</label><div class="fb-ci"><input id="consumoAnnuoGas" type="number" min="0" step="1" inputmode="numeric" placeholder="0"><span class="fb-u">Smc</span></div></div>
+                  <div class="fb-campo"><label for="spesaAnnuaGas">Spesa annua gas <span class="fb-cons">consigliata</span></label><div class="fb-ci"><input id="spesaAnnuaGas" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"><span class="fb-u">€</span></div></div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 
-      <!-- FILTRI (solo Alperia) -->
-      <div data-brand-req="alperia">
-      <div class="section-label">Filtri offerte</div>
-      <div class="grid2">
-        <div class="field">
-          <label class="lbl" for="tipoOffertaFiltro">Tipo di offerta</label>
-          <select id="tipoOffertaFiltro">
-            <option value="tutte">Tutte (fisse + variabili)</option>
-            <option value="fissa">Solo prezzo fisso</option>
-            <option value="variabile">Solo variabile (indicizzata)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="lbl" for="bollinoFiltro">Bollino Alperia <span class="hint">(margine interno)</span></label>
-          <select id="bollinoFiltro">
-            <option value="tutti">Tutti</option>
-            <option value="verde">🟢 Normale</option>
-            <option value="giallo">🟡 Basso</option>
-            <option value="rosso">🔴 Bassissimo</option>
-            <option value="nd">⚪ Non specificato</option>
-          </select>
+      <!-- 5. OPZIONI PER BRAND (ogni riquadro appare solo se il brand è attivo) -->
+      <div class="fb-passo" id="fbPassoBrand">
+        <div class="fb-passo-t"><span class="fb-n"></span> Opzioni dei brand <span class="fb-sub">(compaiono solo per i brand attivi)</span></div>
+        <div class="fb-brandbox-grid">
+
+          <div class="fb-brandbox" data-brand-req="fastweb" data-brand-tint="fastweb">
+            <div class="fb-brandbox-t"><img data-logo="fastweb" alt="Fastweb Energia"></div>
+            <label class="fb-toggle" for="convergenza"><input type="checkbox" id="convergenza"> Ha già Fastweb / Vodafone (fisso o mobile): applica lo sconto convergenza</label>
+          </div>
+
+          <div class="fb-brandbox" data-brand-req="sorgenia" data-brand-tint="sorgenia">
+            <div class="fb-brandbox-t"><img data-logo="sorgenia" alt="Sorgenia"></div>
+            <div class="field" data-brand-req="sorgenia" data-cliente="business">
+              <span class="lbl">Dimensione azienda</span>
+              <div class="fb-seg fb-seg-sm">
+                <label><input type="radio" name="fbSegmento" value="micro" checked><span>Microbusiness<small>Mass Market</small></span></label>
+                <label><input type="radio" name="fbSegmento" value="pmi"><span>PMI</span></label>
+              </div>
+              <select id="segmentoBiz" hidden>
+                <option value="micro">Microbusiness (Mass Market)</option>
+                <option value="pmi">PMI</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fb-brandbox" data-brand-req="plenitude" data-cliente="domestico" data-brand-tint="plenitude">
+            <div class="fb-brandbox-t"><img data-logo="plenitude" alt="Plenitude"></div>
+            <label class="fb-toggle" for="plenDomiciliazione"><input type="checkbox" id="plenDomiciliazione" checked> 💳 Domicilia la bolletta (SEPA): sconto 5% su Fixa Time e Flexi, 12 €/anno sulla quota fissa di Trend Casa</label>
+            <label class="fb-toggle" for="plenPolizza"><input type="checkbox" id="plenPolizza"> Mostra anche Trend Casa NoPensieri (solo con polizza Zurich NoPensieri)</label>
+            <label class="fb-toggle" for="plenFibra"><input type="checkbox" id="plenFibra"> 🌐 Attiva anche la fibra Plenitude: mostra Fixa Time 24 Fibra (quota 108 €/anno, fibra 17,90 €/mese per 24 mesi)</label>
+            <label class="fb-toggle" for="plenPertinenza"><input type="checkbox" id="plenPertinenza"> Luce per una pertinenza (box, cantina con contatore separato): propone Flexi Pertinenze</label>
+          </div>
+
+          <div class="fb-brandbox" data-brand-req="alperia" data-brand-tint="alperia">
+            <div class="fb-brandbox-t"><img data-logo="alperia" alt="Alperia"></div>
+            <div class="fb-riga2">
+              <div class="field">
+                <label class="lbl" for="tipoOffertaFiltro">Tipo di offerta</label>
+                <select id="tipoOffertaFiltro">
+                  <option value="tutte">Tutte (fisse + variabili)</option>
+                  <option value="fissa">Solo prezzo fisso</option>
+                  <option value="variabile">Solo variabile (indicizzata)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lbl" for="bollinoFiltro">Bollino <span class="hint">(margine interno)</span></label>
+                <select id="bollinoFiltro">
+                  <option value="tutti">Tutti</option>
+                  <option value="verde">🟢 Normale</option>
+                  <option value="giallo">🟡 Basso</option>
+                  <option value="rosso">🔴 Bassissimo</option>
+                  <option value="nd">⚪ Non specificato</option>
+                </select>
+              </div>
+            </div>
+            <p class="hint">Il <strong>bollino</strong> è un indicatore di margine interno, solo per le offerte Alperia: non compare mai al cliente (né in PDF né su WhatsApp).</p>
+          </div>
+
         </div>
       </div>
-      <p class="hint">Il <strong>bollino</strong> è un indicatore di margine interno, applicato solo alle offerte <strong>Alperia</strong> e mai mostrato al cliente (né in PDF né su WhatsApp). Il filtro bollino agisce solo sulle offerte Alperia.</p>
-      </div><!-- /filtri Alperia -->
 
       <button type="submit" class="btn">Confronta le offerte</button>
       <p class="disclaimer">Calcolo indicativo. Le offerte a prezzo fisso/indicizzato confrontano la sola materia energia/gas; le offerte a fasce (FLAT) confrontano il totale bolletta. IVA, accise, oneri di sistema, trasporto e gestione contatore possono non essere inclusi.</p>
@@ -1411,7 +1452,6 @@ const ALPERIA = {
      (la CTE espone il lordo: feeCte = fee x 1,10 sulla luce).
    - pcv = quota di commercializzazione €/anno; sconto[] = sconto fedeltà sul pcv (domestiche)
    - quotaVar = quota fissa espressa a consumo €/Smc (gas business)
-   - orario = riduzione fee (lorda) se il cliente ha contatore orario
    - luce: + dispacciamento 0,02 €/kWh; gas: nessun dispacciamento */
 const SORGENIA = {
   id:"sorgenia", label:"Sorgenia", color:"#1C3155",
@@ -1485,7 +1525,7 @@ const SORGENIA = {
     { nome:"Impresa Gas Smart Light Plus", cliente:"business", fornitura:"gas", fee:[0.05,0.06],   pcv:79.2, quotaVar:0.00794, scadenza:"30/09/2026", nota:"Valori riferiti a PCS 38,52 MJ/Smc, poi adeguati al PCS effettivo della località." },
     { nome:"Impresa Gas Smart Light",      cliente:"business", fornitura:"gas", fee:[0.07,0.08],   pcv:79.2, quotaVar:0.00794, scadenza:"30/09/2026", nota:"Valori riferiti a PCS 38,52 MJ/Smc, poi adeguati al PCS effettivo della località." },
     // ---- DOMESTICO · NEXT ENERGY ----
-    { nome:"Next Energy Puntuale", cliente:"domestico", fornitura:"luce", fee:[0.0205,0.0406], feeCte:[0.0225,0.0447], pcv:120, sconto:[0.05,0.10], orario:0.007, scadenza:"30/09/2026", nota:"Solo POD senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta. Dal 13° mese si aggiunge l'Indice GO fatturato a parte." },
+    { nome:"Next Energy Puntuale", cliente:"domestico", fornitura:"luce", fee:[0.0205,0.0406], feeCte:[0.0225,0.0447], pcv:120, sconto:[0.05,0.10], scadenza:"30/09/2026", nota:"Solo POD senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta. Dal 13° mese si aggiunge l'Indice GO fatturato a parte." },
     { nome:"Next Energy Sunlight", cliente:"domestico", fornitura:"gas",  fee:[0.0915,0.1915], pcv:120, sconto:[0.05,0.10], scadenza:"30/09/2026", nota:"Solo PDR senza contratto Sorgenia in essere. Bolletta digitale, fatturazione mensile, pagamento con SDD o carta." },
   ],
   listino(){
@@ -1505,7 +1545,6 @@ const SORGENIA = {
     // Sempre condizioni del 1° anno: il campo "anno contrattuale" è stato tolto il 27/10/2026
     // (confondeva gli utenti). annoIdx resta per leggere il primo valore di fee/feeCte/sconto.
     const annoIdx = 0;
-    const orario = !!input.contatoreOrario;
     const DISP = this.DISP_LUCE;
 
     const build=(servizio, svc, idxProp)=>{
@@ -1520,14 +1559,8 @@ const SORGENIA = {
         const fissa = o.tipo==="fissa";
         // fisso di 12 mesi + "Dal 13° mese": si calcola l'indicizzato con feeDopo
         const fissoOra = fissa && !(annoIdx===1 && o.mesiFisso===12);
-        // Fee dell'anno contrattuale, con eventuale riduzione per contatore orario
+        // Fee dell'anno contrattuale
         let fee = fissoOra ? 0 : (fissa ? o.feeDopo : o.fee[annoIdx]);
-        let notaOrario = "";
-        if(o.orario && orario && servizio==="luce"){
-          const riduzioneNetta = o.orario/1.10;   // la riduzione CTE è sul valore lordo perdite
-          fee = Math.max(0, fee - riduzioneNetta);
-          notaOrario = ` · Contatore orario: fee ridotta di ${o.orario.toFixed(4)} €/kWh lordo (${riduzioneNetta.toFixed(4)} netto)`;
-        }
 
         let energia, note;
         if(fissoOra && servizio==="luce"){
@@ -1542,7 +1575,7 @@ const SORGENIA = {
           energia = consumo*(idx + fee + DISP);
           note = `PUN medio ${idx.toFixed(4)} + fee ${fee.toFixed(4)} €/kWh (netto perdite`
                + (o.feeCte ? `, CTE ${o.feeCte[annoIdx].toFixed(5)} lordo` : "")
-               + `) + disp. ${DISP.toFixed(4)} €/kWh${notaOrario}`;
+               + `) + disp. ${DISP.toFixed(4)} €/kWh`;
         } else {
           energia = consumo*(idx + fee);
           note = `PSV medio ${idx.toFixed(4)} + fee ${fee.toFixed(4)} €/Smc`;
@@ -1580,7 +1613,6 @@ const SORGENIA = {
         } else {
           pdfCond.push([lblS, `${servizio==="luce"?"PUN":"PSV"} + € ${fmtN(o.fee[annoIdx],4)}/${uS}`
             + (o.feeCte ? ` (in CTE € ${fmtN(o.feeCte[annoIdx],5)} con perdite di rete)` : "")]);
-          if(notaOrario) pdfCond.push(["Contatore orario", `fee ridotta di € ${fmtN(o.orario,4)}/kWh`]);
         }
         if(servizio==="luce") pdfCond.push(["Dispacciamento (stima)", `€ ${fmtN(DISP,4)}/kWh`]);
         pdfCond.push(["Commercializzazione", `€ ${moneyG(o.pcv)}/anno`]);
@@ -2014,6 +2046,7 @@ function updateFormFields(){
     const okCliente = !el.dataset.cliente || el.dataset.cliente===cli;   // es. opzioni Plenitude solo domestico
     el.style.display = (okBrand && okCliente) ? "" : "none";
   });
+  fbAggiorna();
 }
 
 /* Elenco brand attivi sotto il titolo (dinamico) */
@@ -2045,13 +2078,60 @@ function renderMesi(){
 function togglePeriodi(){
   const d=document.getElementById("periodiDiversi").checked;
   document.getElementById("periodoGasWrap").style.display=d?"":"none";
-  document.getElementById("periodoLuceLabel").innerHTML = d
-    ? 'Periodo di fatturazione <span class="tag-luce">LUCE</span>'
-    : 'Periodo di fatturazione';
+  const lbl=document.getElementById("periodoLuceLabel");
+  lbl.hidden = !d;   // con un solo periodo il titolo del passo basta
+  lbl.innerHTML = 'Mesi della bolletta <span class="tag-luce">LUCE</span>';
+}
+
+/* ===================== FORM A PASSI: schede Luce / Gas e opzioni per brand =====================
+   I comandi nuovi scrivono negli stessi campi letti dal calcolo (tipoCliente, segmentoBiz,
+   periodiDiversi): la logica delle offerte non cambia. */
+const fbEl = id => document.getElementById(id);
+const fbModo = () => (document.querySelector('input[name="fbModo"]:checked')||{}).value || "dual";
+
+function fbAggiorna(){
+  const modo = fbModo();
+  fbEl("fbSchedaLuce").classList.toggle("spenta", modo==="gas");
+  fbEl("fbSchedaGas").classList.toggle("spenta", modo==="luce");
+  // mesi gas diversi: ha senso solo con luce e gas insieme
+  fbEl("fbToggleDiversi").style.display = modo==="dual" ? "" : "none";
+  if(modo!=="dual" && fbEl("periodiDiversi").checked){ fbEl("periodiDiversi").checked=false; togglePeriodi(); }
+  const fwOn = BRANDS.some(b=>b.id==="fastweb" && b.enabled && b.active);
+  fbEl("fbAvvisoGas").style.display = (modo==="gas" && fwOn) ? "" : "none";
+  // il passo "Opzioni dei brand" sparisce se nessun riquadro è visibile
+  const box = [...document.querySelectorAll("#fbPassoBrand .fb-brandbox")];
+  fbEl("fbPassoBrand").hidden = !box.some(el=>el.style.display!=="none");
+  fbSomme();
+}
+function fbSomme(){
+  const eur = v => "€ " + v.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2});
+  fbEl("fbSumLuce").textContent = eur(num("quotaConsumiLuce")+num("quotaFissaLuce"));
+  fbEl("fbSumGas").textContent  = eur(num("quotaConsumiGas")+num("quotaFissaGas"));
+}
+function fbInit(){
+  // colori e loghi dei brand nei riquadri dedicati
+  BRANDS.forEach(b=>{
+    document.querySelectorAll(`[data-brand-tint="${b.id}"]`).forEach(el=>el.style.setProperty("--bc", b.color));
+    document.querySelectorAll(`[data-pill="${b.id}"]`).forEach(el=>el.textContent = b.label);
+    document.querySelectorAll(`img[data-logo="${b.id}"]`).forEach(el=>{ el.src = b.logo; });
+  });
+  document.querySelectorAll('input[name="fbTipo"]').forEach(r=>r.addEventListener("change",()=>{
+    fbEl("tipoCliente").value = r.value; updateFormFields();
+  }));
+  document.querySelectorAll('input[name="fbSegmento"]').forEach(r=>r.addEventListener("change",()=>{
+    fbEl("segmentoBiz").value = r.value;
+  }));
+  document.querySelectorAll('input[name="fbModo"]').forEach(r=>r.addEventListener("change",fbAggiorna));
+  ["quotaConsumiLuce","quotaFissaLuce","quotaConsumiGas","quotaFissaGas"].forEach(id=>fbEl(id).addEventListener("input",fbSomme));
+  fbAggiorna();
 }
 
 /* ===================== RACCOLTA INPUT ===================== */
 function gatherInput(){
+  const modo = fbModo();
+  // il servizio spento nel passo "Cosa vuoi confrontare?" non entra nel calcolo
+  const nL = id => modo==="gas"  ? 0 : num(id);
+  const nG = id => modo==="luce" ? 0 : num(id);
   const diversi = document.getElementById("periodiDiversi").checked;
   const luceMesi = [...document.querySelectorAll('input[name="meseLuce"]:checked')].map(c=>c.value);
   const gasMesi = diversi
@@ -2062,27 +2142,26 @@ function gatherInput(){
     tipoCliente: document.getElementById("tipoCliente").value,
     segmentoBiz: document.getElementById("segmentoBiz")?.value || "micro",
     convergenza: document.getElementById("convergenza").checked,
-    contatoreOrario: !!document.getElementById("contatoreOrario")?.checked,
     plenDomiciliazione: !!document.getElementById("plenDomiciliazione")?.checked,
     plenPolizza: !!document.getElementById("plenPolizza")?.checked,
     plenFibra: !!document.getElementById("plenFibra")?.checked,
     plenPertinenza: !!document.getElementById("plenPertinenza")?.checked,
     potenza: document.getElementById("potenza").value,
-    consumoAnnuo: num("consumoAnnuo"),
-    totaleBolletta: num("totaleBolletta"),
-    spesaAnnua: num("spesaAnnua"),
+    consumoAnnuo: nL("consumoAnnuo"),
+    totaleBolletta: nL("totaleBolletta"),
+    spesaAnnua: nL("spesaAnnua"),
     periodiDiversi: diversi,
     luce:{
-      mesi:luceMesi, kwh:num("kwh"),
-      quotaConsumi:num("quotaConsumiLuce"), quotaFissa:num("quotaFissaLuce"),
-      attuale:num("quotaConsumiLuce")+num("quotaFissaLuce"),
+      mesi:luceMesi, kwh:nL("kwh"),
+      quotaConsumi:nL("quotaConsumiLuce"), quotaFissa:nL("quotaFissaLuce"),
+      attuale:nL("quotaConsumiLuce")+nL("quotaFissaLuce"),
     },
     gas:{
-      mesi:gasMesi, smc:num("smc"),
-      quotaConsumi:num("quotaConsumiGas"), quotaFissa:num("quotaFissaGas"),
-      attuale:num("quotaConsumiGas")+num("quotaFissaGas"),
-      consumoAnnuo:num("consumoAnnuoGas"), totaleBolletta:num("totaleBollettaGas"),
-      spesaAnnua:num("spesaAnnuaGas"),
+      mesi:gasMesi, smc:nG("smc"),
+      quotaConsumi:nG("quotaConsumiGas"), quotaFissa:nG("quotaFissaGas"),
+      attuale:nG("quotaConsumiGas")+nG("quotaFissaGas"),
+      consumoAnnuo:nG("consumoAnnuoGas"), totaleBolletta:nG("totaleBollettaGas"),
+      spesaAnnua:nG("spesaAnnuaGas"),
     },
   };
 }
@@ -2941,6 +3020,7 @@ function riepSetGasMode(m){ riepGasMode=m; renderRiepilogo(); }
 /* ===================== INIT ===================== */
 renderBrandChips();
 renderMesi();
+fbInit();
 </script>
 
   <!-- ===== ANDAMENTO DI MERCATO (GME) - solo informativo ===== -->
