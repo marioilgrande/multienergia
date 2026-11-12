@@ -706,7 +706,7 @@ function giorniAllaScadenza(off){
 
 function fmtN(n,d){ return Number(n).toLocaleString("it-IT",{minimumFractionDigits:d, maximumFractionDigits:d}); }
 /* importi/numeri con separatore delle migliaia sempre (1.250,00): per il PDF */
-function moneyG(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"}); }
+function moneyG(n){ return cent(n).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:"always"}); }
 function numG(n){ return (n||0).toLocaleString("it-IT",{maximumFractionDigits:0,useGrouping:"always"}); }
 /* canone Fastweb + riga dedicata allo sconto convergenza (o al prezzo per i clienti) */
 function pdfCanoneRows(label, canone, listino, convVal, conv){
@@ -718,7 +718,10 @@ function pdfCanoneRows(label, canone, listino, convVal, conv){
 function monthLabels(keys){ return keys.map(k=>monthByKey[k]?.label || k).join(", "); }
 
 /* ---- UTILS ---- */
-function money(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+/* Arrotonda al centesimo come la visualizzazione (143,695 -> 143,70), così
+   costo attuale − costo offerta = risparmio mostrato, senza scarti di 1 centesimo. */
+function cent(x){ return Math.round(((x||0) + ((x||0)>=0?1e-9:-1e-9))*100)/100; }
+function money(n){ return cent(n).toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function rate3(n){ return (n||0).toLocaleString("it-IT",{minimumFractionDigits:3,maximumFractionDigits:3}); }
 function num(id){ return parseFloat(document.getElementById(id).value) || 0; }
 
@@ -1090,7 +1093,7 @@ function applyFlatTier(o, t){
 
   o.nome = "FASTWEB LUCE FLAT " + tv.name;
   o.costoOfferta = periodCost;
-  o.risparmio = f.totaleBolletta - periodCost;
+  o.risparmio = cent(f.totaleBolletta - periodCost);
 
   const d = [];
   d.push({label:"Fascia visualizzata", value:tv.name});
@@ -1166,7 +1169,7 @@ function applyGasFlatTier(o, t){
 
   o.nome = "FASTWEB GAS FLAT " + tv.name;
   o.costoOfferta = periodCost;
-  o.risparmio = f.totaleBolletta - periodCost;
+  o.risparmio = cent(f.totaleBolletta - periodCost);
 
   const d = [];
   d.push({label:"Fascia visualizzata", value:tv.name});
@@ -2216,13 +2219,26 @@ function runConfronto(skipSpesaCheck){
     return true;
   });
 
+  // importi al centesimo: il risparmio è la differenza esatta dei due importi mostrati
+  all.forEach(o=>{
+    o.costoAttuale = cent(o.costoAttuale);
+    o.costoOfferta = cent(o.costoOfferta);
+    o.risparmio    = cent(o.costoAttuale - o.costoOfferta);
+  });
+
   // assegna id e memorizza
   LAST_OFFERS={};
   all.forEach((o,i)=>{ o.id="of"+i; LAST_OFFERS[o.id]=o; });
 
   // raggruppa per servizio
-  const luce = all.filter(o=>o.servizio==="luce").sort((a,b)=>b.risparmio-a.risparmio);
-  const gas  = all.filter(o=>o.servizio==="gas").sort((a,b)=>b.risparmio-a.risparmio);
+  // Classifica: le FLAT si valutano sull'anno. Se c'è la spesa annua si usa il risparmio
+  // annuo riportato ai mesi della bolletta, così una FLAT che costa di più sull'anno non
+  // passa davanti solo perché nel periodo selezionato risulta più bassa.
+  const chiave = o => (o.flat && o.flatAnnual && o.flatAnnual.hasSpesa)
+    ? o.flatAnnual.delta * (o.nMesi||1) / 12
+    : o.risparmio;
+  const luce = all.filter(o=>o.servizio==="luce").sort((a,b)=>chiave(b)-chiave(a));
+  const gas  = all.filter(o=>o.servizio==="gas").sort((a,b)=>chiave(b)-chiave(a));
 
   const body=document.getElementById("resultsBody");
   body.innerHTML="";
@@ -2333,7 +2349,7 @@ function bollinoInfo(val){
 function renderCard(o){
   const isWinner = !!o._winner;
   const ok = o.risparmio>=0;
-  const imp = Math.abs(o.risparmio).toFixed(2);
+  const imp = money(Math.abs(o.risparmio));
   const det = o.dettaglio.map(r=>
     r.sub
       ? `<div class="det-sub">${r.label}</div>`
@@ -2670,7 +2686,7 @@ function stampaPDF(id){
 function stampaPDFStampa(id){
   const o=LAST_OFFERS[id]; if(!o) return;
   const nome=LAST_INPUT?.nome || "—";
-  const ok=o.risparmio>=0; const imp=Math.abs(o.risparmio).toFixed(2);
+  const ok=o.risparmio>=0; const imp=money(Math.abs(o.risparmio));
   const oggi=new Date().toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"});
   const det=o.dettaglio.map(r=>`<tr class="${r.tot?'tot':''}"><td>${r.label}</td><td class="amt">${r.value}</td></tr>`).join("");
 
@@ -2680,7 +2696,7 @@ function stampaPDFStampa(id){
   let confrontoBlock;
   if(o.flat && o.flatAnnual){
     const fa = o.flatAnnual;
-    const pOk = o.risparmio>=0, pImp = Math.abs(o.risparmio).toFixed(2);
+    const pOk = o.risparmio>=0, pImp = money(Math.abs(o.risparmio));
     const annualSaving = fa.hasSpesa ? fa.delta : null;
     const annualPrimary = (annualSaving!==null && annualSaving >= SOGLIA_ANNUO);
     if(annualPrimary){
@@ -2779,7 +2795,7 @@ function inviaWhatsApp(id){
   const o=LAST_OFFERS[id]; if(!o) return;
   const nome=LAST_INPUT?.nome;
   if(!nome){ alert("Inserisci il nome cliente."); return; }
-  const ok=o.risparmio>=0; const imp=Math.abs(o.risparmio).toFixed(2);
+  const ok=o.risparmio>=0; const imp=money(Math.abs(o.risparmio));
   const det=o.dettaglio.map(r=>`- ${r.label}: ${r.value}`).join("\n");
   let esito;
   if(o.flat && o.flatAnnual){
