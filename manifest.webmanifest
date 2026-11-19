@@ -1,0 +1,16 @@
+{
+  "name": "Comparatore Multienergia",
+  "short_name": "Multienergia",
+  "description": "Confronta la bolletta del cliente con le offerte Plenitude, Sorgenia, Fastweb Energia e Alperia e trova la proposta di maggior risparmio.",
+  "lang": "it",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1d3a",
+  "theme_color": "#0f1d3a",
+  "icons": [
+    { "src": "/assets/icone/icona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icone/icona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icone/icona-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -4,6 +4,17 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Comparatore Multienergia</title>
+<meta name="description" content="Confronta la bolletta del cliente con le offerte Plenitude, Sorgenia, Fastweb Energia e Alperia.">
+<meta name="theme-color" content="#0f1d3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icone/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/icone/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/icone/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="assets/icone/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Multienergia">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,17 +39,39 @@
   }
   .container{max-width:900px; margin:0 auto; padding:18px}
 
+  /* ===== Banner: blu notte, logo, titolo e brand attivi ===== */
   header.app{
-    border-radius:16px; color:#fff; margin:8px 0 18px; padding:22px 24px;
-    background:linear-gradient(110deg,var(--accent),#3a7bd5 55%,var(--fastweb));
-    box-shadow:0 10px 30px rgba(31,37,69,.18);
+    position:relative; overflow:hidden; border-radius:18px; color:#fff; margin:8px 0 18px;
+    padding:22px 24px 18px;
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(58,123,213,.35) 0%, rgba(58,123,213,0) 55%),
+      radial-gradient(90% 120% at 0% 100%, rgba(10,186,181,.22) 0%, rgba(10,186,181,0) 60%),
+      linear-gradient(135deg,#16294f 0%,#0f1d3a 100%);
+    box-shadow:0 14px 34px rgba(15,29,58,.28);
   }
-  header.app h1{margin:0; font-size:24px; font-weight:800; letter-spacing:.5px}
-  header.app p{margin:6px 0 0; font-size:14px; opacity:.95; font-weight:500}
-  header.app .app-brands{margin:11px 0 0; display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:12px; font-weight:700; opacity:1}
-  header.app .app-brands .hb-lbl{opacity:.9; font-weight:600}
-  .hb-pill{display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,.2); padding:4px 11px; border-radius:999px; color:#fff}
-  .hb-dot{width:9px; height:9px; border-radius:50%; display:inline-block}
+  header.app::after{content:""; position:absolute; left:0; right:0; bottom:0; height:4px;
+    background:linear-gradient(90deg,var(--accent),#3a7bd5 55%,var(--fastweb))}
+  .app-top{display:flex; align-items:center; gap:16px}
+  .app-logo{width:58px; height:58px; flex:0 0 58px; border-radius:15px; box-shadow:0 6px 16px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08)}
+  .app-tit{min-width:0}
+  .app-eyebrow{display:block; font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:#8fd9d6}
+  header.app h1{margin:2px 0 0; font-size:25px; font-weight:800; letter-spacing:.2px; line-height:1.15}
+  header.app .app-tag{margin:5px 0 0; font-size:13.5px; font-weight:500; color:#c3cde3; line-height:1.4}
+  header.app .app-brands{margin:16px 0 0; padding-top:14px; border-top:1px solid rgba(255,255,255,.1);
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center; font-size:12px; font-weight:700}
+  .hb-lbl{color:#9fb0d0; font-weight:600; font-size:11.5px; letter-spacing:.4px; text-transform:uppercase; margin-right:2px}
+  .hb-chip{display:inline-flex; align-items:center; justify-content:center; height:32px; padding:0 12px; border-radius:9px;
+    background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .hb-chip img{height:18px; width:auto; max-width:96px; object-fit:contain; display:block}
+  .hb-chip.txt{color:var(--ink); font-size:12px}
+  @media (max-width:600px){
+    header.app{padding:18px 16px 16px}
+    .app-eyebrow{display:none}
+    .app-logo{width:48px; height:48px; flex-basis:48px; border-radius:12px}
+    header.app h1{font-size:21px}
+    header.app .app-tag{font-size:12.5px}
+    .hb-chip{height:28px; padding:0 9px} .hb-chip img{height:15px}
+  }
 
   .panel{
     background:var(--card); border:1px solid var(--line); border-radius:16px;
@@ -166,6 +199,41 @@
   @media (max-width:700px){
     .fb-riga2,.fb-schede,.fb-brandbox-grid{grid-template-columns:1fr}
   }
+
+  /* ===== Import bolletta PDF ===== */
+  .imp{margin:0 0 20px}
+  .imp-drop{display:flex; align-items:center; gap:14px; padding:16px 18px; border:2px dashed #b9c6e3; border-radius:14px;
+    background:linear-gradient(180deg,#f7f9ff,#eef3fd); cursor:pointer; transition:border-color .15s, background .15s, box-shadow .15s}
+  .imp-drop:hover,.imp-drop:focus-visible{border-color:#3a7bd5; outline:none; box-shadow:0 0 0 4px rgba(58,123,213,.12)}
+  .imp-drop.over{border-color:var(--accent); background:#ecfbfa}
+  .imp-drop.busy{pointer-events:none; opacity:.65}
+  .imp-ico{width:46px; height:46px; flex:0 0 46px; border-radius:12px; background:#0f1d3a; display:flex; align-items:center; justify-content:center}
+  .imp-ico svg{width:24px; height:24px}
+  .imp-txt{flex:1; min-width:0}
+  .imp-txt strong{display:block; font-size:15.5px; font-weight:800; color:var(--ink)}
+  .imp-txt span{display:block; font-size:12.8px; color:var(--muted); font-weight:600; margin-top:2px; line-height:1.4}
+  .imp-btn{flex:0 0 auto; padding:9px 14px; border-radius:10px; background:#0f1d3a; color:#fff; font-weight:800; font-size:13px; white-space:nowrap}
+  .imp-o{display:flex; align-items:center; gap:10px; margin:14px 0 0; color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px}
+  .imp-o::before,.imp-o::after{content:""; flex:1; height:1px; background:var(--line)}
+  .imp-stato{margin-top:12px; border-radius:12px; padding:14px 16px; font-size:13.5px; line-height:1.45}
+  .imp-stato.load{background:#f3f6fc; border:1px solid #dbe3f3; display:flex; align-items:center; gap:12px; font-weight:700}
+  .imp-spin{width:22px; height:22px; flex:0 0 22px; border-radius:50%; border:3px solid #cfd9ee; border-top-color:#3a7bd5; animation:impgira .8s linear infinite}
+  @keyframes impgira{to{transform:rotate(360deg)}}
+  .imp-stato.load small{display:block; font-weight:600; color:var(--muted)}
+  .imp-stato.err{background:#fff4f4; border:1.5px solid #f0b4b8; color:#7a1f26; font-weight:600}
+  .imp-stato.ok{background:#f2fbf6; border:1.5px solid #a9dfc0}
+  .imp-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+  .imp-head b{font-size:15px; color:#155c3b}
+  .imp-link{background:none; border:none; padding:0; font:inherit; font-size:12.5px; font-weight:800; color:#3a7bd5; cursor:pointer; text-decoration:underline}
+  .imp-griglia{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px}
+  .imp-cella{background:#fff; border:1px solid #d7eee1; border-radius:10px; padding:8px 10px}
+  .imp-cella small{display:block; font-size:11px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--muted)}
+  .imp-cella span{display:block; font-weight:700; color:var(--ink); font-size:13.5px; overflow-wrap:anywhere}
+  .imp-nota{margin-top:10px; font-weight:600; color:#2d4a3c}
+  .imp-avviso{margin-top:8px; padding:8px 10px; border-radius:9px; background:#fff7e0; border:1.5px solid #e0a82e; color:#5b4310; font-weight:700; font-size:13px}
+  .fb-auto{background:#eef6ff !important; border-color:#3a7bd5 !important; box-shadow:0 0 0 3px rgba(58,123,213,.14) !important}
+  .mese.fb-auto{background:#eef6ff}
+  @media (max-width:600px){ .imp-drop{flex-wrap:wrap} .imp-btn{width:100%; text-align:center} }
 
   .btn{
     width:100%; padding:14px; border:none; border-radius:12px; font-size:17px; font-weight:800;
@@ -360,9 +428,15 @@
 <body>
   <div class="container">
     <header class="app">
-      <h1>COMPARATORE MULTIENERGIA</h1>
-      <p class="app-tag">Confronto multi-brand della miglior proposta di risparmio</p>
-      <p class="app-brands" id="appBrands"></p>
+      <div class="app-top">
+        <img class="app-logo" src="assets/icone/icona.svg" alt="" width="58" height="58">
+        <div class="app-tit">
+          <span class="app-eyebrow">Analisi bolletta · Confronto offerte</span>
+          <h1>Comparatore Multienergia</h1>
+          <p class="app-tag">La proposta di maggior risparmio tra i brand attivi, calcolata sui dati della bolletta del cliente.</p>
+        </div>
+      </div>
+      <div class="app-brands" id="appBrands"></div>
     </header>
 
     <!-- Andamento di mercato GME (solo informativo, NON usato nei calcoli) -->
@@ -383,6 +457,18 @@
         <button type="button" class="btn-guida" onclick="apriModale('guidaOverlay')">Quali dati inserire?</button>
         <button type="button" class="btn-riep" id="btnRiepFastweb" onclick="apriRiepilogo()">Riepilogo offerte Fastweb</button>
         <button type="button" class="btn-offerte" onclick="apriOfferte()">Offerte in corso</button>
+      </div>
+
+      <!-- IMPORT BOLLETTA PDF: legge i dati e compila il form -->
+      <div class="imp" id="imp">
+        <input type="file" id="impFile" accept="application/pdf,.pdf" hidden>
+        <div class="imp-drop" id="impDrop" role="button" tabindex="0" aria-describedby="impDesc">
+          <span class="imp-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg></span>
+          <span class="imp-txt"><strong>Carica la bolletta in PDF</strong><span id="impDesc">Trascina qui il file o tocca per sceglierlo: leggo i dati dello Scontrino dell'energia e compilo il form.</span></span>
+          <span class="imp-btn">Scegli PDF</span>
+        </div>
+        <div class="imp-stato" id="impStato" hidden aria-live="polite"></div>
+        <div class="imp-o">oppure inserisci i dati a mano</div>
       </div>
 
       <!-- 1. CLIENTE -->
@@ -2094,8 +2180,9 @@ function updateHeaderBrands(){
   if(!el) return;
   const attivi = BRANDS.filter(b=>b.enabled && b.active);
   el.innerHTML = attivi.length
-    ? `<span class="hb-lbl">Brand attivi:</span>` + attivi.map(b=>
-        `<span class="hb-pill"><span class="hb-dot" style="background:${b.color}"></span>${b.label}</span>`).join("")
+    ? `<span class="hb-lbl">Brand a confronto</span>` + attivi.map(b=> b.logo
+        ? `<span class="hb-chip" title="${b.label}"><img src="${b.logo}" alt="${b.label}"></span>`
+        : `<span class="hb-chip txt">${b.label}</span>`).join("")
     : `<span class="hb-lbl">Nessun brand attivo — selezionane almeno uno qui sotto</span>`;
 }
 
@@ -2163,6 +2250,134 @@ function fbInit(){
   document.querySelectorAll('input[name="fbModo"]').forEach(r=>r.addEventListener("change",fbAggiorna));
   ["quotaConsumiLuce","quotaFissaLuce","quotaConsumiGas","quotaFissaGas"].forEach(id=>fbEl(id).addEventListener("input",fbSomme));
   fbAggiorna();
+}
+
+/* ===================== IMPORT BOLLETTA PDF =====================
+   Il PDF va a /api/bolletta, che con l'AI legge SOLO i numeri scritti in bolletta.
+   Qui i dati compilano il form (campi evidenziati da controllare): il confronto
+   resta quello del comparatore e parte solo quando l'operatore preme il pulsante. */
+const IMP_MAX = 3*1024*1024;
+const IMP_MESI = ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+const IMP_NOMI = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+let impBusy = false;
+
+function impInit(){
+  const drop=fbEl("impDrop"), file=fbEl("impFile");
+  if(!drop) return;
+  drop.addEventListener("click",()=>{ if(!impBusy) file.click(); });
+  drop.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ") && !impBusy){ e.preventDefault(); file.click(); } });
+  file.addEventListener("change",()=>{ if(file.files[0]) impLeggi(file.files[0]); file.value=""; });
+  ["dragenter","dragover"].forEach(t=>drop.addEventListener(t,e=>{ e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach(t=>drop.addEventListener(t,e=>{ e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop",e=>{ const f=e.dataTransfer?.files?.[0]; if(f && !impBusy) impLeggi(f); });
+  // un campo corretto a mano non è più "da controllare"
+  fbEl("form").addEventListener("input",e=>e.target.classList?.remove("fb-auto"));
+  fbEl("form").addEventListener("change",e=>{ const l=e.target.closest?.(".mese"); if(l) l.classList.remove("fb-auto"); });
+}
+
+function impStato(cls, html){
+  const el=fbEl("impStato"); el.className="imp-stato "+cls; el.innerHTML=html; el.hidden=!cls;
+}
+const impEsc = t => String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function impLeggi(file){
+  if(!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)){
+    impStato("err","Il file scelto non è un PDF. Carica il <b>PDF originale</b> della bolletta, scaricato dal sito o dall'app del fornitore."); return;
+  }
+  if(file.size > IMP_MAX){
+    impStato("err","Il PDF supera i 3 MB. Di solito succede con le scansioni: serve il <b>PDF originale</b> del fornitore."); return;
+  }
+  impBusy=true; fbEl("impDrop").classList.add("busy");
+  impStato("load",`<span class="imp-spin"></span><span>Sto leggendo <b>${impEsc(file.name)}</b>…<small>Di solito servono 10-30 secondi.</small></span>`);
+  try{
+    const b64 = await new Promise((ok,ko)=>{ const r=new FileReader(); r.onload=()=>ok(String(r.result).split(",")[1]||""); r.onerror=ko; r.readAsDataURL(file); });
+    const res = await fetch("/api/bolletta",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ pdf:b64 }) });
+    let out=null; try{ out=await res.json(); }catch(e){}
+    if(!res.ok || !out || out.tipo!=="ok"){
+      const msg = out?.errore || (res.status===404 ? "La lettura automatica non è disponibile in questa versione della pagina." : "Lettura non riuscita (errore "+res.status+").");
+      impStato("err", impEsc(msg)+` <button type="button" class="imp-link" onclick="fbEl('impFile').click()">Riprova</button>`);
+      return;
+    }
+    impApplica(out.bolletta, file.name);
+  }catch(err){
+    impStato("err",`Connessione non riuscita. Controlla la rete e riprova. <button type="button" class="imp-link" onclick="fbEl('impFile').click()">Riprova</button>`);
+  }finally{
+    impBusy=false; fbEl("impDrop").classList.remove("busy");
+  }
+}
+
+// "2026-08" -> "ago-26" (chiave dei mesi del comparatore)
+const impChiave = m => { const [a,mm]=m.split("-"); return IMP_MESI[+mm-1]+"-"+a.slice(2); };
+const impNome = m => { const [a,mm]=m.split("-"); return IMP_NOMI[+mm-1]+" "+a; };
+
+// sceglie i mesi del comparatore: quelli della bolletta se ci sono gli indici, altrimenti gli ultimi disponibili
+function impMesi(mesiBolletta, avvisi, etichetta){
+  if(!mesiBolletta.length) return [];
+  const disp = mesiBolletta.map(impChiave).filter(k=>monthByKey[k]);
+  if(disp.length===mesiBolletta.length) return disp;
+  const mancanti = mesiBolletta.filter(m=>!monthByKey[impChiave(m)]).map(impNome);
+  if(disp.length){
+    avvisi.push(`Per ${mancanti.join(", ")} non ci sono ancora gli indici PUN/PSV${etichetta}: ho selezionato solo i mesi disponibili.`);
+    return disp;
+  }
+  const ultimi = MONTHS.slice(-Math.min(mesiBolletta.length, MONTHS.length)).map(m=>m.key);
+  avvisi.push(`Il periodo della bolletta${etichetta} (${mancanti.join(", ")}) non ha ancora gli indici PUN/PSV: ho selezionato gli ultimi ${ultimi.length} mesi disponibili (${ultimi.map(k=>monthByKey[k].label).join(", ")}). Contano per le offerte indicizzate.`);
+  return ultimi;
+}
+
+function impApplica(b, nomeFile){
+  const form=fbEl("form");
+  form.querySelectorAll(".fb-auto").forEach(el=>el.classList.remove("fb-auto"));
+  let n=0;
+  const metti=(id,v)=>{ const el=fbEl(id); if(!el) return; el.value = (v==null ? "" : v); el.dispatchEvent(new Event("input")); if(v!=null && v!==""){ el.classList.add("fb-auto"); n++; } };
+  const scegli=(name,val)=>{ const r=document.querySelector(`input[name="${name}"][value="${val}"]`); if(r && !r.checked) r.click(); };
+
+  // cliente e servizi
+  // nuova bolletta = nuovo cliente: il nome precedente non deve restare
+  fbEl("nome").value = b.intestatario || "";
+  if(b.intestatario){ fbEl("nome").classList.add("fb-auto"); n++; }
+  scegli("fbTipo", b.tipoCliente==="business" ? "business" : "domestico");
+  scegli("fbModo", b.luce && b.gas ? "dual" : (b.gas ? "gas" : "luce"));
+
+  // periodo
+  const avvisi=[];
+  const ml = b.luce ? impMesi(b.luce.mesi, avvisi, b.gas?" luce":"") : [];
+  const mg = b.gas  ? impMesi(b.gas.mesi,  avvisi, b.luce?" gas":"")  : [];
+  const diversi = !!(b.luce && b.gas && ml.join()!==mg.join());
+  fbEl("periodiDiversi").checked = diversi; togglePeriodi();
+  const spunta=(name,keys)=>document.querySelectorAll(`input[name="${name}"]`).forEach(c=>{
+    c.checked = keys.includes(c.value); c.closest(".mese")?.classList.toggle("fb-auto", c.checked); });
+  spunta("meseLuce", b.luce ? ml : mg);
+  spunta("meseGas", diversi ? mg : []);
+  if(!(b.luce?b.luce.mesi:b.gas.mesi).length) avvisi.push("Non ho trovato il periodo di fatturazione: seleziona i mesi a mano.");
+
+  // luce
+  const L=b.luce||{}, G=b.gas||{};
+  metti("kwh",L.kwh); metti("quotaConsumiLuce",L.quotaConsumi); metti("quotaFissaLuce",L.quotaFissa);
+  metti("totaleBolletta",L.totaleBolletta); metti("consumoAnnuo",L.consumoAnnuo);
+  if(L.potenzaKw){ const k=L.potenzaKw; fbEl("potenza").value = k<=3.05?"3":(k<=4.55?"4.5":(k<=6.05?"6":"altro")); fbEl("potenza").classList.add("fb-auto"); n++; }
+  metti("spesaAnnua",L.spesaAnnua);
+  // gas
+  metti("smc",G.smc); metti("quotaConsumiGas",G.quotaConsumi); metti("quotaFissaGas",G.quotaFissa);
+  metti("totaleBollettaGas",G.totaleBolletta); metti("consumoAnnuoGas",G.consumoAnnuo);
+  metti("spesaAnnuaGas",G.spesaAnnua);
+  fbSomme();
+
+  if(b.luce && (L.quotaConsumi==null || L.quotaFissa==null)) avvisi.push("Luce: non ho trovato tutte le quote di vendita dello Scontrino, completale a mano.");
+  if(b.gas && (G.quotaConsumi==null || G.quotaFissa==null)) avvisi.push("Gas: non ho trovato tutte le quote di vendita dello Scontrino, completale a mano.");
+
+  // riepilogo
+  const eur=v=>v==null?"—":"€ "+money(v);
+  const celle=[["Intestatario",b.intestatario||"—"],["Cliente",b.tipoCliente==="business"?"Partita IVA":"Domestico"],["Fornitore attuale",b.fornitore||"—"]];
+  if(b.luce) celle.push(["Luce"+(b.offertaLuce?" · "+b.offertaLuce:""),`${L.kwh!=null?numG(L.kwh)+" kWh":"—"} · ${eur((L.quotaConsumi||0)+(L.quotaFissa||0))} materia`],
+                        ["Periodo luce", L.mesi.length?L.mesi.map(impNome).join(", "):"—"]);
+  if(b.gas)  celle.push(["Gas"+(b.offertaGas?" · "+b.offertaGas:""),`${G.smc!=null?numG(G.smc)+" Smc":"—"} · ${eur((G.quotaConsumi||0)+(G.quotaFissa||0))} materia`],
+                        ["Periodo gas", G.mesi.length?G.mesi.map(impNome).join(", "):"—"]);
+  impStato("ok",`<div class="imp-head"><b>✓ Dati letti da ${impEsc(nomeFile)}</b><button type="button" class="imp-link" onclick="fbEl('impFile').click()">Carica un'altra bolletta</button></div>
+    <div class="imp-griglia">${celle.map(([k,v])=>`<div class="imp-cella"><small>${impEsc(k)}</small><span>${impEsc(v)}</span></div>`).join("")}</div>
+    ${avvisi.map(a=>`<div class="imp-avviso">⚠ ${impEsc(a)}</div>`).join("")}
+    <div class="imp-nota">Ho compilato ${n} campi, evidenziati in azzurro: controllali con la bolletta, poi premi <b>Confronta le offerte</b>.</div>`);
+  fbEl("impStato").scrollIntoView({behavior:"smooth", block:"nearest"});
 }
 
 /* ===================== RACCOLTA INPUT ===================== */
@@ -2303,6 +2518,13 @@ function runConfronto(skipSpesaCheck){
   if(fwActive && haLuce && input.tipoCliente==="domestico" && FASTWEB._oct08Active() &&
      input.gas.consumoAnnuo>FASTWEB.GAS_FLAT_MAX_SMC){
     body.innerHTML += `<div class="info-fwgas gas-esclusa">🔥 <b>Fastweb Gas FLAT non proposta:</b> il consumo annuo gas inserito (${input.gas.consumoAnnuo.toLocaleString("it-IT")} Smc) supera il massimo di ${FASTWEB.GAS_FLAT_MAX_SMC.toLocaleString("it-IT")} Smc/anno previsto dalle offerte a fasce.</div>`;
+  }
+  // Luce FLAT esclusa: lo diciamo, altrimenti sembra che manchino dei dati
+  if(fwActive && haLuce && input.tipoCliente==="domestico"){
+    const maxFlat = 4500 + FASTWEB.ULTRA_TOLERANCE;
+    const motivo = input.potenza==="altro" ? "la potenza del contatore è oltre 6 kW"
+      : (input.consumoAnnuo>maxFlat ? `il consumo annuo luce (${input.consumoAnnuo.toLocaleString("it-IT")} kWh) supera il massimo di ${maxFlat.toLocaleString("it-IT")} kWh/anno della fascia più alta` : "");
+    if(motivo) body.innerHTML += `<div class="info-fwgas gas-esclusa">💡 <b>Fastweb Luce FLAT non proposta:</b> ${motivo}.</div>`;
   }
 
   if(luce.length && gas.length){
@@ -3074,6 +3296,7 @@ function riepSetGasMode(m){ riepGasMode=m; renderRiepilogo(); }
 renderBrandChips();
 renderMesi();
 fbInit();
+impInit();
 </script>
 
   <!-- ===== ANDAMENTO DI MERCATO (GME) - solo informativo ===== -->
