@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>Comparatore Multienergia</title>
 <meta name="description" content="Confronta la bolletta del cliente con le offerte Plenitude, Sorgenia, Fastweb Energia e Alperia.">
 <meta name="theme-color" content="#0f1d3a">
@@ -33,11 +33,17 @@
     --futuro:#9aa0b5;
   }
   *{box-sizing:border-box}
+  /* niente zoom sul telefono: né pizzicando, né col doppio tocco, né quando
+     si tocca un campo (iPhone ingrandisce i campi con testo sotto i 16px) */
+  html{touch-action:pan-x pan-y}
+  @media (pointer:coarse){ input, select, textarea{font-size:16px !important} }
   body{
     font-family:'Montserrat',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     margin:0; background:var(--bg); color:var(--ink); line-height:1.5;
   }
   .container{max-width:900px; margin:0 auto; padding:18px}
+  /* web app installata su iPhone: il contenuto non va sotto orologio e tacca */
+  .container{padding-top:calc(18px + env(safe-area-inset-top)); padding-left:calc(18px + env(safe-area-inset-left)); padding-right:calc(18px + env(safe-area-inset-right)); padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 
   /* ===== Banner: blu notte, logo, titolo e brand attivi ===== */
   header.app{
@@ -3291,6 +3297,11 @@ function renderRiepilogo(){
 function riepSetClient(v){ riepClient=v; renderRiepilogo(); }
 function riepSetPower(p){ riepPower=p; renderRiepilogo(); }
 function riepSetGasMode(m){ riepGasMode=m; renderRiepilogo(); }
+
+/* ===================== NIENTE ZOOM SUL TELEFONO =====================
+   Safari su iPhone ignora user-scalable=no: il pizzico si ferma qui. */
+["gesturestart","gesturechange"].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{ if(e.touches.length>1) e.preventDefault(); },{passive:false});
 
 /* ===================== INIT ===================== */
 renderBrandChips();
