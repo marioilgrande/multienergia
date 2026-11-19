@@ -2339,8 +2339,8 @@ function impApplica(b, nomeFile){
   scegli("fbTipo", b.tipoCliente==="business" ? "business" : "domestico");
   scegli("fbModo", b.luce && b.gas ? "dual" : (b.gas ? "gas" : "luce"));
 
-  // periodo
-  const avvisi=[];
+  // periodo (gli avvisi del server vengono prima: forniture multiple, periodo sospetto)
+  const avvisi=[...(b.avvisi||[])];
   const ml = b.luce ? impMesi(b.luce.mesi, avvisi, b.gas?" luce":"") : [];
   const mg = b.gas  ? impMesi(b.gas.mesi,  avvisi, b.luce?" gas":"")  : [];
   const diversi = !!(b.luce && b.gas && ml.join()!==mg.join());
@@ -2349,7 +2349,7 @@ function impApplica(b, nomeFile){
     c.checked = keys.includes(c.value); c.closest(".mese")?.classList.toggle("fb-auto", c.checked); });
   spunta("meseLuce", b.luce ? ml : mg);
   spunta("meseGas", diversi ? mg : []);
-  if(!(b.luce?b.luce.mesi:b.gas.mesi).length) avvisi.push("Non ho trovato il periodo di fatturazione: seleziona i mesi a mano.");
+  if(!(b.luce?b.luce.mesi:b.gas.mesi).length && !avvisi.some(a=>/periodo/.test(a))) avvisi.push("Non ho trovato il periodo di fatturazione: seleziona i mesi a mano.");
 
   // luce
   const L=b.luce||{}, G=b.gas||{};
@@ -2367,8 +2367,8 @@ function impApplica(b, nomeFile){
   if(b.gas && (G.quotaConsumi==null || G.quotaFissa==null)) avvisi.push("Gas: non ho trovato tutte le quote di vendita dello Scontrino, completale a mano.");
 
   // riepilogo
-  const eur=v=>v==null?"—":"€ "+money(v);
-  const celle=[["Intestatario",b.intestatario||"—"],["Cliente",b.tipoCliente==="business"?"Partita IVA":"Domestico"],["Fornitore attuale",b.fornitore||"—"]];
+  const eur=v=>v==null?"—":"€ "+moneyG(v);
+  const celle=[["Intestatario",b.intestatario||"—"],["Cliente",(b.tipoCliente==="business"?"Partita IVA":"Domestico")+(b.usoFornitura?" · "+b.usoFornitura:"")],["Fornitore attuale",b.fornitore||"—"]];
   if(b.luce) celle.push(["Luce"+(b.offertaLuce?" · "+b.offertaLuce:""),`${L.kwh!=null?numG(L.kwh)+" kWh":"—"} · ${eur((L.quotaConsumi||0)+(L.quotaFissa||0))} materia`],
                         ["Periodo luce", L.mesi.length?L.mesi.map(impNome).join(", "):"—"]);
   if(b.gas)  celle.push(["Gas"+(b.offertaGas?" · "+b.offertaGas:""),`${G.smc!=null?numG(G.smc)+" Smc":"—"} · ${eur((G.quotaConsumi||0)+(G.quotaFissa||0))} materia`],
