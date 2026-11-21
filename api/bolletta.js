@@ -6,7 +6,8 @@
 
 const MODELLI = [['gemini-2.5-flash', 32000], ['gemini-2.5-flash-lite', 18000]];
 const MAX_PDF_BYTES = 3 * 1024 * 1024;          // il corpo delle funzioni Vercel è limitato a 4,5 MB (base64 +33%)
-const ORIGINI_OK = [/^https:\/\/multienergia(-[a-z0-9-]+)?\.vercel\.app$/, /^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/];
+// fastenergia.vercel.app (comparatore Fastweb) usa questa stessa lettura: per lui serve il CORS (vedi corsHeaders)
+const ORIGINI_OK = [/^https:\/\/multienergia(-[a-z0-9-]+)?\.vercel\.app$/, /^https:\/\/fastenergia\.vercel\.app$/, /^https:\/\/fastwebenergia(-[a-z0-9-]+)?\.vercel\.app$/, /^http:\/\/localhost(:\d+)?$/, /^http:\/\/127\.0\.0\.1(:\d+)?$/];
 
 // Limite semplice per istanza: evita che qualcuno consumi la quota AI a raffica.
 const richieste = new Map();
@@ -18,9 +19,21 @@ function troppeRichieste(ip) {
   return lista.length > max;
 }
 
-const json = (obj, status = 200) => new Response(JSON.stringify(obj), {
-  status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }
+// CORS solo per le origini ammesse (le chiamate dallo stesso sito non ne hanno bisogno)
+const cors = origine => (origine && ORIGINI_OK.some(r => r.test(origine)))
+  ? { 'Access-Control-Allow-Origin': origine, 'Vary': 'Origin' } : {};
+const json = (obj, status = 200, extra = {}) => new Response(JSON.stringify(obj), {
+  status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...extra }
 });
+
+export async function OPTIONS(request) {
+  const origine = request.headers.get('origin') || '';
+  if (!ORIGINI_OK.some(r => r.test(origine))) return new Response(null, { status: 403 });
+  return new Response(null, { status: 204, headers: {
+    'Access-Control-Allow-Origin': origine, 'Vary': 'Origin',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400'
+  } });
+}
 
 const SCHEMA = {
   type: 'OBJECT',
@@ -211,24 +224,26 @@ function normalizza(d) {
 
 export async function POST(request) {
   const origine = request.headers.get('origin') || '';
-  if (origine && !ORIGINI_OK.some(r => r.test(origine))) return json({ errore: 'Origine non consentita.' }, 403);
+  const h = cors(origine);
+  const rispondi = (obj, status = 200) => json(obj, status, h);
+  if (origine && !ORIGINI_OK.some(r => r.test(origine))) return rispondi({ errore: 'Origine non consentita.' }, 403);
 
   const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'n/d';
-  if (troppeRichieste(ip)) return json({ tipo: 'limite', errore: 'Troppe bollette caricate in pochi minuti. Riprova tra qualche minuto.' }, 429);
+  if (troppeRichieste(ip)) return rispondi({ tipo: 'limite', errore: 'Troppe bollette caricate in pochi minuti. Riprova tra qualche minuto.' }, 429);
 
   let body;
-  try { body = await request.json(); } catch { return json({ errore: 'Richiesta non valida.' }, 400); }
+  try { body = await request.json(); } catch { return rispondi({ errore: 'Richiesta non valida.' }, 400); }
   let pdf = String(body?.pdf || '');
-  if (!pdf) return json({ errore: 'Nessun file ricevuto.' }, 400);
-  if (pdf.length * 0.75 > MAX_PDF_BYTES) return json({ tipo: 'grande', errore: 'Il PDF supera i 3 MB: carica il PDF originale del fornitore, non una scansione.' }, 413);
+  if (!pdf) return rispondi({ errore: 'Nessun file ricevuto.' }, 400);
+  if (pdf.length * 0.75 > MAX_PDF_BYTES) return rispondi({ tipo: 'grande', errore: 'Il PDF supera i 3 MB: carica il PDF originale del fornitore, non una scansione.' }, 413);
   // un PDF ha l'intestazione "%PDF" entro i primi 1024 byte: alcuni gestionali mettono dei byte
   // prima (es. la BOM UTF-8 EF BB BF). Si tolgono, così il file arriva pulito alla lettura.
   const inizio = Buffer.from(pdf.slice(0, 1400), 'base64').indexOf('%PDF');
   if (inizio > 0) pdf = Buffer.from(pdf, 'base64').subarray(inizio).toString('base64');
-  if (inizio < 0) return json({ tipo: 'no-pdf', errore: 'Il file non è un PDF. Carica il PDF originale scaricato dal sito o dall\'app del fornitore.' }, 415);
+  if (inizio < 0) return rispondi({ tipo: 'no-pdf', errore: 'Il file non è un PDF. Carica il PDF originale scaricato dal sito o dall\'app del fornitore.' }, 415);
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return json({ tipo: 'config', errore: 'La lettura automatica non è ancora attiva su questo sito.' }, 503);
+  if (!apiKey) return rispondi({ tipo: 'config', errore: 'La lettura automatica non è ancora attiva su questo sito.' }, 503);
 
   let ultimoStato = 0, risposto = false, dati = null;
   const t0 = Date.now();
@@ -250,23 +265,23 @@ export async function POST(request) {
   const AVVISO = ' Serve il PDF originale scaricato dal sito o dall\'app del fornitore: una foto o una scansione salvata in PDF non contiene il testo.';
   if (!dati) {
     if (!risposto && (ultimoStato === 429 || ultimoStato >= 500)) {
-      return json({ tipo: 'occupato', errore: 'Il servizio di lettura è momentaneamente molto richiesto. Non è un problema del file: riprova tra qualche minuto.' }, 503);
+      return rispondi({ tipo: 'occupato', errore: 'Il servizio di lettura è momentaneamente molto richiesto. Non è un problema del file: riprova tra qualche minuto.' }, 503);
     }
-    return json({ tipo: 'illeggibile', errore: 'Non sono riuscito a leggere i dati della bolletta.' + AVVISO }, 422);
+    return rispondi({ tipo: 'illeggibile', errore: 'Non sono riuscito a leggere i dati della bolletta.' + AVVISO }, 422);
   }
   if (dati.affidabile === false) {
-    return json({ tipo: 'illeggibile', errore: (dati.note ? dati.note.trim().replace(/([^.!?])$/, '$1.') : 'La bolletta non è abbastanza leggibile.') + AVVISO }, 422);
+    return rispondi({ tipo: 'illeggibile', errore: (dati.note ? dati.note.trim().replace(/([^.!?])$/, '$1.') : 'La bolletta non è abbastanza leggibile.') + AVVISO }, 422);
   }
   const bolletta = normalizza(dati);
   if (!bolletta.luce && !bolletta.gas) {
-    return json({ tipo: 'illeggibile', errore: 'Nella bolletta non ho trovato lo Scontrino dell\'energia con i consumi.' + AVVISO }, 422);
+    return rispondi({ tipo: 'illeggibile', errore: 'Nella bolletta non ho trovato lo Scontrino dell\'energia con i consumi.' + AVVISO }, 422);
   }
   // consumo zero (es. casa vuota): non c'è niente da confrontare, lo diciamo chiaramente
   const consumo = (bolletta.luce?.kwh || 0) + (bolletta.gas?.smc || 0);
   const scartato = bolletta.luce?.kwh === null || bolletta.gas?.smc === null;
   if (!consumo && !scartato) {
     const cosa = bolletta.luce && bolletta.gas ? 'luce e gas' : (bolletta.luce ? 'luce' : 'gas');
-    return json({ tipo: 'zero', errore: `Nel periodo di questa bolletta il consumo ${cosa} fatturato è 0, quindi non c'è una spesa per l'energia da confrontare. Carica una bolletta con consumi.` }, 422);
+    return rispondi({ tipo: 'zero', errore: `Nel periodo di questa bolletta il consumo ${cosa} fatturato è 0, quindi non c'è una spesa per l'energia da confrontare. Carica una bolletta con consumi.` }, 422);
   }
-  return json({ tipo: 'ok', bolletta });
+  return rispondi({ tipo: 'ok', bolletta });
 }
