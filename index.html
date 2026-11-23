@@ -615,9 +615,9 @@
 
           <div class="fb-brandbox" data-brand-req="plenitude" data-cliente="domestico" data-brand-tint="plenitude">
             <div class="fb-brandbox-t"><img data-logo="plenitude" alt="Plenitude"></div>
-            <label class="fb-toggle" for="plenDomiciliazione"><input type="checkbox" id="plenDomiciliazione" checked> 💳 Domicilia la bolletta (SEPA): sconto 5% su Fixa Time e Flexi, 12 €/anno sulla quota fissa di Trend Casa</label>
+            <label class="fb-toggle" for="plenDomiciliazione"><input type="checkbox" id="plenDomiciliazione" checked> 💳 Domicilia la bolletta (SEPA): sconto 5% su Fixa e Flexi, 12 €/anno sulla quota fissa di Trend Casa</label>
             <label class="fb-toggle" for="plenPolizza"><input type="checkbox" id="plenPolizza"> Mostra anche Trend Casa NoPensieri (solo con polizza Zurich NoPensieri)</label>
-            <label class="fb-toggle" for="plenFibra"><input type="checkbox" id="plenFibra"> 🌐 Attiva anche la fibra Plenitude: mostra Fixa Time 24 Fibra (quota 108 €/anno, fibra 17,90 €/mese per 24 mesi)</label>
+            <label class="fb-toggle" for="plenFibra"><input type="checkbox" id="plenFibra"> 🌐 Attiva anche la fibra Plenitude: mostra Fixa Time 24 Fibra (quota 108 €/anno, fibra 22,90 €/mese per 24 mesi)</label>
             <label class="fb-toggle" for="plenPertinenza"><input type="checkbox" id="plenPertinenza"> Luce per una pertinenza (box, cantina con contatore separato): propone Flexi Pertinenze</label>
           </div>
 
@@ -1792,18 +1792,88 @@ const SORGENIA = {
    - fibra:true = Fixa Time 24 Fibra, solo insieme alla fibra (mostrata solo con la spunta "fibra")
    - dom.prezzo = prezzo con domiciliazione scritto a mano (Special Days / Fibra: 30% + 5% sul listino = −35%)
    - dal / scadenza = finestra di vendibilità (fuori finestra l'offerta sparisce)
-   Allineato al COMPARATORE PLENITUDE della campagna 15/10/2026. */
-const PLENITUDE_SCAD_FIXA = "04/11/2026";  /* Fixa Time: campagna 2026.10 fino al 04/11 */
-const PLENITUDE_SCAD = "23/11/2026";       /* Trend Casa, Flexi Pertinenze, Trend Business */
+   Allineato al COMPARATORE PLENITUDE della campagna 2026.11 (24/11/2026). */
+const PLENITUDE_DAL_24NOV = "24/11/2026";   /* campagna 2026.11 */
+const PLENITUDE_SCAD_FIBRA = "30/11/2026";  /* Fixa Time 24 Fibra (presentazione fibra del 24/11) */
+const PLENITUDE_SCAD_FIXA = "03/12/2026";   /* Fixa Black Friday, Fixa Time 12 */
+const PLENITUDE_SCAD_DIC = "15/12/2026";    /* Trend Casa, Flexi Pertinenze, Trend Business */
+/* campagna precedente */
+const PLENITUDE_SCAD = "23/11/2026";
 const PLENITUDE_DAL = "15/10/2026";
 const PLENITUDE_DAL_NOV = "05/11/2026";    /* aggiornamento 5/11: nuovi prezzi Fixa Time */
 const PLENITUDE = {
   id:"plenitude", label:"Plenitude", color:"#009E62",
   DISP_LUCE:0.02,
-  REGOLE:"Solo cambio fornitore (switch). Niente subentri, prime attivazioni né cambi prodotto. Luce: ammesso anche switch con voltura. Gas: switch con voltura possibile dal 16/11/2026.",
+  REGOLE:"Solo cambio fornitore (switch). Niente subentri, prime attivazioni né cambi prodotto. Ammesso anche lo switch con voltura, luce e gas.",
   OFFERTE:[
-      /* ---------- AGGIORNAMENTO 5/11/2026: Smart chiusa il 04/11, Fixa Time 24 offerta di punta ----------
-         Dalle CTE del 05/11 (Fixa Time 24 Fibra dalla presentazione "new aggiornamento 5.11": CTE non ancora ricevuta). Compaiono da sole dal 05/11. */
+      /* ---------- CAMPAGNA 2026.11, dal 24/11/2026: CTE del 24/11. Senza CTE (dalla presentazione): Fixa Time 24 Fibra, Trend Business luce e Premium luce ---------- */
+      { nome:"Fixa Black Friday Luce", fam:"Fixa Black Friday", cliente:"domestico", fornitura:"luce",
+        tipo:"fissa", prezzoFisso:0.146, prezzoFissoCte:0.1606, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        fasce:"F1 0,1657 · F23 0,1576 €/kWh",
+        esaurimento:true, dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_FIXA, codice:"LFIXA24VFRI241126", cte:"fixa-black-friday-241126.pdf",
+        nota:"Offerta di punta: prezzo fisso 24 mesi, energia 100% rinnovabile certificata." },
+      { nome:"Fixa Black Friday Gas", fam:"Fixa Black Friday", cliente:"domestico", fornitura:"gas",
+        tipo:"fissa", prezzoFisso:0.76, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        esaurimento:true, dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_FIXA, codice:"GFIXA24FRI241126", cte:"fixa-black-friday-241126.pdf",
+        nota:"Offerta di punta: prezzo fisso 24 mesi riferito a PCS 0,03852 GJ/Smc." },
+      { nome:"Fixa Time 24 Fibra Luce", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"luce",
+        tipo:"fissa", prezzoFisso:0.146, prezzoFissoCte:0.1606, pcv:108, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        fibra:true, fasce:"F1 0,1657 · F23 0,1576 €/kWh",
+        dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_FIBRA, codice:"", cte:"",
+        nota:"Solo insieme alla fibra Plenitude: quota fissa 108 €/anno invece di 144 e fibra a 22,90 €/mese per 24 mesi." },
+      { nome:"Fixa Time 24 Fibra Gas", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"gas",
+        tipo:"fissa", prezzoFisso:0.76, pcv:108, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+        fibra:true,
+        dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_FIBRA, codice:"", cte:"",
+        nota:"Solo insieme alla fibra Plenitude: quota fissa 108 €/anno invece di 144 e fibra a 22,90 €/mese per 24 mesi." },
+      { nome:"Fixa Time 12 Luce", fam:"Fixa Time 12", cliente:"domestico", fornitura:"luce",
+        tipo:"fissa", prezzoFisso:0.2, prezzoFissoCte:0.22, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
+        fasce:"F1 0,2244 · F23 0,2175 €/kWh",
+        esaurimento:true, dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_FIXA, codice:"LFIXATIVBAS241126", cte:"fixa-time-12-241126.pdf",
+        nota:"Prezzo fisso 12 mesi, quota fissa più bassa del listino. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
+      { nome:"Fixa Time 12 Gas", fam:"Fixa Time 12", cliente:"domestico", fornitura:"gas",
+        tipo:"fissa", prezzoFisso:0.98, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
+        esaurimento:true, dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_FIXA, codice:"GFIXATIBAS241126", cte:"fixa-time-12-241126.pdf",
+        nota:"Prezzo fisso 12 mesi riferito a PCS 0,03852 GJ/Smc. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
+      { nome:"Trend Casa Luce", fam:"Trend Casa", cliente:"domestico", fornitura:"luce",
+      spread:0.020, spreadCte:0.022, pcv:144, dom:{tipo:"quota", val:12}, durata:"24 mesi",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"LTCASAVBAS241126", cte:"trend-casa-241126.pdf",
+      nota:"Spread bloccato 24 mesi, energia 100% rinnovabile certificata." },
+      { nome:"Trend Casa Gas", fam:"Trend Casa", cliente:"domestico", fornitura:"gas",
+      spread:0.15, pcv:144, dom:{tipo:"quota", val:12}, durata:"24 mesi",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"GTCASABAS241126", cte:"trend-casa-241126.pdf",
+      nota:"Spread bloccato 24 mesi." },
+      { nome:"Trend Casa NoPensieri Luce", fam:"Trend Casa NoPensieri", cliente:"domestico", fornitura:"luce",
+      spread:0.020, spreadCte:0.022, pcv:120, dom:{tipo:"quota", val:12}, durata:"24 mesi", polizza:true,
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"LTCASAVNOP241126", cte:"trend-casa-nopensieri-241126.pdf",
+      nota:"Si firma solo insieme a una polizza Zurich NoPensieri (Impianti o Assistenza)." },
+      { nome:"Trend Casa NoPensieri Gas", fam:"Trend Casa NoPensieri", cliente:"domestico", fornitura:"gas",
+      spread:0.15, pcv:120, dom:{tipo:"quota", val:12}, durata:"24 mesi", polizza:true,
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"GTCASANOP241126", cte:"trend-casa-nopensieri-241126.pdf",
+      nota:"Si firma solo insieme a una polizza Zurich NoPensieri (Impianti o Assistenza)." },
+      { nome:"Flexi Pertinenze Luce", fam:"Flexi Pertinenze", cliente:"domestico", fornitura:"luce",
+      tipo:"fissa", prezzoFisso:0.196, prezzoFissoCte:0.2156, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
+      pertinenza:true, fasce:"F1 0,2225 · F23 0,2116 €/kWh",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"LPERTVBAS241126", cte:"flexi-pertinenze-241126.pdf",
+      nota:"Solo POD che alimenta esclusivamente box, cantine o altri locali annessi all'abitazione. Tariffe di rete \"altri usi\"." },
+      { nome:"Trend Business Luce", fam:"Trend Business", cliente:"business", fornitura:"luce",
+      spread:0.026, spreadCte:0.0286, pcv:192, durata:"24 mesi",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"", cte:"",
+      nota:"Partite IVA in bassa tensione fino a 30.000 kWh/anno e 150 kW di potenza impegnata. Addebito SEPA obbligatorio." },
+      { nome:"Trend Business Premium Luce", fam:"Trend Business Premium", cliente:"business", fornitura:"luce",
+      spread:0.026, spreadCte:0.0286, pcv:96, durata:"24 mesi",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"", cte:"",
+      nota:"Come Trend Business con quota fissa dimezzata. Solo nuovi clienti (no cambio prodotto). Partite IVA fino a 30.000 kWh/anno. Addebito SEPA obbligatorio." },
+      { nome:"Trend Business Gas", fam:"Trend Business", cliente:"business", fornitura:"gas",
+      spread:0.12, pcv:192, durata:"24 mesi",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"TNDGBAS241126", cte:"trend-business-gas-241126.pdf",
+      nota:"Partite IVA fino a 5.000 Smc/anno. Addebito SEPA obbligatorio." },
+      { nome:"Trend Business Premium Gas", fam:"Trend Business Premium", cliente:"business", fornitura:"gas",
+      spread:0.12, pcv:96, durata:"24 mesi",
+      dal:PLENITUDE_DAL_24NOV, scadenza:PLENITUDE_SCAD_DIC, codice:"TNDGPRE241126", cte:"trend-business-premium-gas-241126.pdf",
+      nota:"Come Trend Business gas con quota fissa dimezzata. Solo nuovi clienti (no cambio prodotto). Partite IVA fino a 5.000 Smc/anno. Addebito SEPA obbligatorio." },
+
+      /* ---------- campagna precedente, fino al 23/11/2026: da togliere al prossimo giro ---------- */
       { nome:"Fixa Time 24 Base Luce", fam:"Fixa Time 24 Base", cliente:"domestico", fornitura:"luce",
         tipo:"fissa", prezzoFisso:0.149, prezzoFissoCte:0.1639, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
         fasce:"F1 0,1694 · F23 0,1607 €/kWh",
@@ -1813,16 +1883,6 @@ const PLENITUDE = {
         tipo:"fissa", prezzoFisso:0.79, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
         esaurimento:true, dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"GFIXA24BAS051126", cte:"fixa-time-24-base-051126.pdf",
         nota:"Offerta di punta: prezzo fisso 24 mesi riferito a PCS 0,03852 GJ/Smc." },
-      { nome:"Fixa Time 24 Fibra Luce", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"luce",
-        tipo:"fissa", prezzoFisso:0.149, prezzoFissoCte:0.1639, pcv:108, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
-        fibra:true, fasce:"F1 0,1694 · F23 0,1607 €/kWh",
-        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
-        nota:"Solo insieme alla fibra Plenitude: quota fissa 108 €/anno invece di 144 e fibra a 17,90 €/mese per 24 mesi." },
-      { nome:"Fixa Time 24 Fibra Gas", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"gas",
-        tipo:"fissa", prezzoFisso:0.79, pcv:108, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
-        fibra:true,
-        dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"", cte:"",
-        nota:"Solo insieme alla fibra Plenitude: quota fissa 108 €/anno invece di 144 e fibra a 17,90 €/mese per 24 mesi." },
       { nome:"Fixa Time 12 Luce", fam:"Fixa Time 12", cliente:"domestico", fornitura:"luce",
         tipo:"fissa", prezzoFisso:0.215, prezzoFissoCte:0.2365, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
         fasce:"F1 0,2411 · F23 0,2339 €/kWh",
@@ -1832,98 +1892,40 @@ const PLENITUDE = {
         tipo:"fissa", prezzoFisso:1.00, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
         esaurimento:true, dal:PLENITUDE_DAL_NOV, scadenza:PLENITUDE_SCAD, codice:"GFIXATIBAS051126", cte:"fixa-time-12-051126.pdf",
         nota:"Prezzo fisso 12 mesi riferito a PCS 0,03852 GJ/Smc. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
-
-    /* ---------- DOMESTICO · FIXA TIME 24 SMART (Special Days -30% per 24 mesi) ----------
-       Luce: CTE 0,1455 €/kWh = 0,2079 × 0,70 (lordo perdite) → netto 0,189 × 0,70 = 0,1323 */
-    { nome:"Fixa Time 24 Smart Luce", fam:"Fixa Time 24 Smart", cliente:"domestico", fornitura:"luce",
-      tipo:"fissa", prezzoFisso:0.1323, prezzoFissoCte:0.1455, pcv:144, dom:{tipo:"perc", val:0.05, prezzo:0.12285}, durata:"24 mesi",
-      esaurimento:true, specialDays:true, fasce:"listino F1 0,2154 · F23 0,2036 €/kWh, -30% Special Days (F1 0,1507 · F23 0,1425)",
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"LFIXA24VSMA151026", cte:"fixa-time-24-smart-151026.pdf",
-      nota:"Sconto Special Days del 30% già applicato per 24 mesi (listino 0,2079 €/kWh). Cambio prodotto gratuito. Salvo esaurimento anticipato." },
-    { nome:"Fixa Time 24 Smart Gas", fam:"Fixa Time 24 Smart", cliente:"domestico", fornitura:"gas",
-      tipo:"fissa", prezzoFisso:0.61, pcv:144, dom:{tipo:"perc", val:0.05, prezzo:0.5655}, durata:"24 mesi",
-      esaurimento:true, specialDays:true,
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"GFIXA24SMA151026", cte:"fixa-time-24-smart-151026.pdf",
-      nota:"Sconto Special Days del 30% già applicato per 24 mesi (listino 0,87 €/Smc). Cambio prodotto gratuito. Salvo esaurimento anticipato." },
-
-    /* ---------- DOMESTICO · FIXA TIME 24 FIBRA (solo insieme alla fibra) ----------
-       Dalla presentazione "fibra+commodity" del 15/10 (CTE non ancora ricevuta):
-       -30% su luce/gas, quota fissa 144 - 36 = 108 €/anno, fibra 17,90 €/mese per 24 mesi. */
-    { nome:"Fixa Time 24 Fibra Luce", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"luce",
-      tipo:"fissa", prezzoFisso:0.1323, prezzoFissoCte:0.1455, pcv:108, dom:{tipo:"perc", val:0.05, prezzo:0.12285}, durata:"24 mesi",
-      fibra:true, fasce:"listino F1 0,2154 · F23 0,2036 €/kWh, -30% (F1 0,1507 · F23 0,1425)",
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"", cte:"",
-      nota:"Solo insieme alla fibra Plenitude: -30% sul prezzo (listino 0,2079 €/kWh), quota fissa 108 €/anno invece di 144 e fibra a 17,90 €/mese per 24 mesi." },
-    { nome:"Fixa Time 24 Fibra Gas", fam:"Fixa Time 24 Fibra", cliente:"domestico", fornitura:"gas",
-      tipo:"fissa", prezzoFisso:0.609, pcv:108, dom:{tipo:"perc", val:0.05, prezzo:0.5655}, durata:"24 mesi",
-      fibra:true,
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"", cte:"",
-      nota:"Solo insieme alla fibra Plenitude: -30% sul prezzo (listino 0,87 €/Smc), quota fissa 108 €/anno invece di 144 e fibra a 17,90 €/mese per 24 mesi." },
-
-    /* ---------- DOMESTICO · TREND CASA (PUN/PSV + spread bloccato 24 mesi) ----------
-       CTE del 15/10 ricevuta il 05/11, valida fino al 23/11. */
-    { nome:"Trend Casa Luce", fam:"Trend Casa", cliente:"domestico", fornitura:"luce",
+      { nome:"Trend Casa Luce", fam:"Trend Casa", cliente:"domestico", fornitura:"luce",
       spread:0.020, spreadCte:0.022, pcv:144, dom:{tipo:"quota", val:12}, durata:"24 mesi",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"LTCASAVBAS151026", cte:"trend-casa-151026.pdf",
       nota:"Spread bloccato 24 mesi, energia 100% rinnovabile certificata." },
-    { nome:"Trend Casa Gas", fam:"Trend Casa", cliente:"domestico", fornitura:"gas",
+      { nome:"Trend Casa Gas", fam:"Trend Casa", cliente:"domestico", fornitura:"gas",
       spread:0.15, pcv:144, dom:{tipo:"quota", val:12}, durata:"24 mesi",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"GTCASABAS151026", cte:"trend-casa-151026.pdf",
       nota:"Spread bloccato 24 mesi." },
-
-    /* ---------- DOMESTICO · TREND CASA NOPENSIERI (solo con polizza Zurich) ---------- */
-    { nome:"Trend Casa NoPensieri Luce", fam:"Trend Casa NoPensieri", cliente:"domestico", fornitura:"luce",
+      { nome:"Trend Casa NoPensieri Luce", fam:"Trend Casa NoPensieri", cliente:"domestico", fornitura:"luce",
       spread:0.020, spreadCte:0.022, pcv:120, dom:{tipo:"quota", val:12}, durata:"24 mesi", polizza:true,
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"LTCASAVNOP151026", cte:"trend-casa-nopensieri-151026.pdf",
       nota:"Si firma solo insieme a una polizza Zurich NoPensieri (Impianti o Assistenza)." },
-    { nome:"Trend Casa NoPensieri Gas", fam:"Trend Casa NoPensieri", cliente:"domestico", fornitura:"gas",
+      { nome:"Trend Casa NoPensieri Gas", fam:"Trend Casa NoPensieri", cliente:"domestico", fornitura:"gas",
       spread:0.15, pcv:120, dom:{tipo:"quota", val:12}, durata:"24 mesi", polizza:true,
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"GTCASANOP151026", cte:"trend-casa-nopensieri-151026.pdf",
       nota:"Si firma solo insieme a una polizza Zurich NoPensieri (Impianti o Assistenza)." },
-
-    /* ---------- DOMESTICO · FIXA TIME 12 (prezzo fisso 12 mesi) ---------- */
-    { nome:"Fixa Time 12 Luce", fam:"Fixa Time 12", cliente:"domestico", fornitura:"luce",
-      tipo:"fissa", prezzoFisso:0.195, prezzoFissoCte:0.2145, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
-      fasce:"F1 0,219 · F23 0,2119 €/kWh",
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"LFIXATIVBAS151026", cte:"fixa-time-12-151026.pdf",
-      nota:"Prezzo fisso 12 mesi, quota fissa più bassa del listino. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
-    { nome:"Fixa Time 12 Gas", fam:"Fixa Time 12", cliente:"domestico", fornitura:"gas",
-      tipo:"fissa", prezzoFisso:0.903, pcv:96, dom:{tipo:"perc", val:0.05}, durata:"12 mesi",
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"GFIXATIBAS151026", cte:"fixa-time-12-151026.pdf",
-      nota:"Prezzo fisso 12 mesi riferito a PCS 0,03852 GJ/Smc. Alla scadenza Plenitude comunica le nuove condizioni con 90 giorni di anticipo." },
-
-    /* ---------- DOMESTICO · FIXA TIME 24 (prezzo fisso 24 mesi) — CTE nuova non ancora ricevuta ---------- */
-    { nome:"Fixa Time 24 Luce", fam:"Fixa Time 24", cliente:"domestico", fornitura:"luce",
-      tipo:"fissa", prezzoFisso:0.189, prezzoFissoCte:0.2079, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
-      fasce:"F1 0,2154 · F23 0,2036 €/kWh",
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"", cte:"",
-      nota:"Prezzo fisso 24 mesi, energia 100% rinnovabile certificata." },
-    { nome:"Fixa Time 24 Gas", fam:"Fixa Time 24", cliente:"domestico", fornitura:"gas",
-      tipo:"fissa", prezzoFisso:0.87, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
-      dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD_FIXA, codice:"", cte:"",
-      nota:"Prezzo fisso 24 mesi riferito a PCS 0,03852 GJ/Smc." },
-
-    /* ---------- DOMESTICO · FLEXI PERTINENZE (solo POD di box e cantine) ---------- */
-    { nome:"Flexi Pertinenze Luce", fam:"Flexi Pertinenze", cliente:"domestico", fornitura:"luce",
+      { nome:"Flexi Pertinenze Luce", fam:"Flexi Pertinenze", cliente:"domestico", fornitura:"luce",
       tipo:"fissa", prezzoFisso:0.196, prezzoFissoCte:0.2156, pcv:144, dom:{tipo:"perc", val:0.05}, durata:"24 mesi",
       pertinenza:true, fasce:"F1 0,2235 · F23 0,211 €/kWh",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"LPERTVBAS151026", cte:"flexi-pertinenze-151026-v2.pdf",
       nota:"Solo POD che alimenta esclusivamente box, cantine o altri locali annessi all'abitazione. Tariffe di rete \"altri usi\"." },
-
-    /* ---------- BUSINESS · TREND BUSINESS (addebito SEPA obbligatorio) ---------- */
-    { nome:"Trend Business Luce", fam:"Trend Business", cliente:"business", fornitura:"luce",
+      { nome:"Trend Business Luce", fam:"Trend Business", cliente:"business", fornitura:"luce",
       spread:0.026, spreadCte:0.0286, pcv:192, durata:"24 mesi",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"TNDVLBAS151026", cte:"trend-business-luce-151026-v2.pdf",
       nota:"Partite IVA in bassa tensione fino a 30.000 kWh/anno e 150 kW di potenza impegnata. Addebito SEPA obbligatorio." },
-    { nome:"Trend Business Premium Luce", fam:"Trend Business Premium", cliente:"business", fornitura:"luce",
+      { nome:"Trend Business Premium Luce", fam:"Trend Business Premium", cliente:"business", fornitura:"luce",
       spread:0.026, spreadCte:0.0286, pcv:96, durata:"24 mesi",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"TNDVLPRE151026", cte:"trend-business-premium-luce-151026.pdf",
       nota:"Come Trend Business con quota fissa dimezzata. Solo nuovi clienti (no cambio prodotto). Partite IVA fino a 30.000 kWh/anno. Addebito SEPA obbligatorio." },
-    { nome:"Trend Business Gas", fam:"Trend Business", cliente:"business", fornitura:"gas",
+      { nome:"Trend Business Gas", fam:"Trend Business", cliente:"business", fornitura:"gas",
       spread:0.12, pcv:192, durata:"24 mesi",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"TNDGBAS151026", cte:"trend-business-gas-151026-v2.pdf",
       nota:"Partite IVA fino a 5.000 Smc/anno. Addebito SEPA obbligatorio." },
-    { nome:"Trend Business Premium Gas", fam:"Trend Business Premium", cliente:"business", fornitura:"gas",
+      { nome:"Trend Business Premium Gas", fam:"Trend Business Premium", cliente:"business", fornitura:"gas",
       spread:0.12, pcv:96, durata:"24 mesi",
       dal:PLENITUDE_DAL, scadenza:PLENITUDE_SCAD, codice:"TNDGPRE151026", cte:"trend-business-premium-gas-151026.pdf",
       nota:"Come Trend Business gas con quota fissa dimezzata. Solo nuovi clienti (no cambio prodotto). Partite IVA fino a 5.000 Smc/anno. Addebito SEPA obbligatorio." }
@@ -1948,7 +1950,7 @@ const PLENITUDE = {
       const prezzo = o.tipo==="fissa"
         ? `${fmtN(o.prezzoFissoCte||o.prezzoFisso,4)} ${u} fisso ${o.durata}`
         : `${o.fornitura==="luce"?"PUN":"PSV"} + ${fmtN(v, v<0.1?4:2)} ${u}, spread bloccato ${o.durata}`;
-      const extra=[o.polizza?"solo con polizza Zurich NoPensieri":"", o.fibra?"solo insieme alla fibra (fibra 17,90 €/mese per 24 mesi)":"", o.pertinenza?"solo pertinenze (box, cantine)":"", o.cte?"":"CTE in arrivo",
+      const extra=[o.polizza?"solo con polizza Zurich NoPensieri":"", o.fibra?"solo insieme alla fibra (fibra 22,90 €/mese per 24 mesi)":"", o.pertinenza?"solo pertinenze (box, cantine)":"", o.cte?"":"CTE in arrivo",
         o.dom?("domiciliazione: "+(o.dom.tipo==="quota"?`−${fmtN(o.dom.val,0)} €/anno sulla quota fissa`:`−${fmtN(o.dom.val*100,0)}% sull'energia`)):"",
         o.esaurimento?"salvo esaurimento anticipato":""].filter(Boolean).join(" · ");
       return {cliente:o.cliente, servizio:o.fornitura, nome:o.nome, prezzo, quota:`${fmtN(o.pcv,0)} €/anno`, scadenza:o.scadenza, extra};
