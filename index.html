@@ -303,6 +303,65 @@
   .saving.ok{background:var(--ok); color:#fff}
   .saving.ko{background:var(--ko); color:#fff}
 
+  /* ===== Esito: riquadro in cima, esito della card, classifica compatta ===== */
+  .esito-top{border-radius:16px; padding:16px 18px; margin:0 0 18px; background:#fff; border:1px solid var(--line); box-shadow:0 6px 20px rgba(31,37,69,.08)}
+  .et-tit{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+  .et-tit b{font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--muted)}
+  .et-tit span{font-size:12px; color:var(--muted); font-weight:600}
+  .et-row{display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:12px; margin-top:8px; border:1.5px solid}
+  .et-row.ok{background:#ecf8f1; border-color:#9fd9b8}
+  .et-row.ko{background:#fdf0f0; border-color:#f1b9bd}
+  .et-ico{width:42px; height:42px; flex:0 0 42px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:21px; box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .et-mid{flex:1; min-width:0}
+  .et-verd{font-size:15.5px; font-weight:800; line-height:1.25}
+  .et-row.ok .et-verd{color:#17683d}
+  .et-row.ko .et-verd{color:#a3222c}
+  .et-sub{font-size:12.5px; color:#4d5470; font-weight:600; margin-top:3px; line-height:1.4}
+  .et-val{text-align:right; flex:0 0 auto}
+  .et-val strong{display:block; font-size:26px; font-weight:800; line-height:1.05; white-space:nowrap}
+  .et-row.ok .et-val strong{color:#1f9e5a}
+  .et-row.ko .et-val strong{color:#c62828}
+  .et-val small{display:block; font-size:10.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); margin-top:3px}
+  .et-tot{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:10px; padding:12px 14px; border-radius:12px; background:#0f1d3a; color:#fff}
+  .et-tot span{font-size:13px; font-weight:700; color:#c3cde3}
+  .et-tot strong{font-size:22px; font-weight:800; color:#7ee2a8; white-space:nowrap}
+  .et-tot em{display:block; font-style:normal; font-size:12px; color:#c3cde3; font-weight:600; text-align:right}
+  @media (max-width:540px){ .et-row{flex-wrap:wrap} .et-val{flex-basis:100%; text-align:left; display:flex; align-items:baseline; gap:8px} .et-val small{margin-top:0} }
+
+  .esito-box{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-radius:12px; margin-bottom:10px; border:1.5px solid}
+  .esito-box.ok{background:#ecf8f1; border-color:#9fd9b8}
+  .esito-box.ko{background:#fdf0f0; border-color:#f1b9bd}
+  .eb-lbl{font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.5px}
+  .esito-box.ok .eb-lbl{color:#17683d}
+  .esito-box.ko .eb-lbl{color:#a3222c}
+  .eb-sub{font-size:12px; color:#4d5470; font-weight:600; margin-top:2px}
+  .eb-val{font-size:28px; font-weight:800; white-space:nowrap; line-height:1}
+  .esito-box.ok .eb-val{color:#1f9e5a}
+  .esito-box.ko .eb-val{color:#c62828}
+  .offer.no-risp{box-shadow:0 3px 12px rgba(31,37,69,.06)}
+  .ribbon.ko{background:linear-gradient(90deg,#8a93ad,#6b7490)}
+
+  .rk-tool{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin:-6px 0 10px; font-size:12px; color:var(--muted); font-weight:600}
+  details.rk{background:#fff; border:1px solid var(--line); border-left:5px solid #ccc; border-radius:12px; margin-bottom:8px; box-shadow:0 2px 8px rgba(31,37,69,.05)}
+  details.rk.ok{border-left-color:#1f9e5a}
+  details.rk.ko{border-left-color:#d64550}
+  details.rk > summary{display:flex; align-items:center; gap:12px; padding:11px 14px; cursor:pointer; list-style:none}
+  details.rk > summary::-webkit-details-marker{display:none}
+  .rk-n{width:28px; height:28px; flex:0 0 28px; border-radius:50%; background:#eef1f7; color:#3a4063; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center}
+  .rk-id{flex:1; min-width:0}
+  .rk-id b{display:block; font-size:14.5px; line-height:1.25}
+  .rk-chips{display:flex; gap:5px; flex-wrap:wrap; margin-top:4px}
+  .rk-chips span{font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:.3px}
+  .rk-d{text-align:right; flex:0 0 auto}
+  .rk-d strong{display:block; font-size:17px; font-weight:800; white-space:nowrap}
+  .rk-d small{display:block; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--muted)}
+  details.rk.ok .rk-d strong{color:#1f9e5a}
+  details.rk.ko .rk-d strong{color:#c62828}
+  .rk-chev{color:#a9b0c4; transition:transform .15s}
+  details.rk[open] .rk-chev{transform:rotate(180deg)}
+  details.rk .offer{border:none; box-shadow:none; margin:0; border-top:1px solid var(--line); border-radius:0 0 12px 12px}
+  @media (max-width:540px){ details.rk > summary{flex-wrap:wrap} .rk-d{order:3; flex-basis:100%; text-align:left; padding-left:40px; display:flex; align-items:baseline; gap:6px} .rk-chev{display:none} }
+
   details.det{background:#f7f8fb; border-radius:9px; padding:10px 13px; margin-bottom:12px; font-size:13px}
   details.det summary{cursor:pointer; font-weight:700; color:#444}
   details.det[open] summary{margin-bottom:8px}
@@ -1339,6 +1398,8 @@ function _flatRender(id){
   const o = LAST_OFFERS[id];
   const host = document.getElementById("card_"+id);
   if(o && host) host.outerHTML = renderCard(o);
+  const rk = document.getElementById("rk_"+id), d = document.getElementById("rkd_"+id);
+  if(o && rk && d){ const e = esitoOfferta(o); rk.className = "rk "+(e.ok?"ok":"ko"); d.innerHTML = rkDeltaHTML(o); }
 }
 function flatNav(id, delta){
   const o = LAST_OFFERS[id]; if(!o || !o.flat) return;
@@ -2535,6 +2596,9 @@ function runConfronto(skipSpesaCheck){
     if(motivo) body.innerHTML += `<div class="info-fwgas gas-esclusa">💡 <b>Fastweb Luce FLAT non proposta:</b> ${motivo}.</div>`;
   }
 
+  // l'esito va per primo, prima degli avvisi dei brand
+  if(luce.length || gas.length) body.innerHTML = renderEsitoTop(luce, gas) + body.innerHTML;
+
   if(luce.length && gas.length){
     // Analisi Luce + Gas: visibili solo le due offerte vincitrici; le altre dietro un pulsante
     luce[0]._winner = true; gas[0]._winner = true;
@@ -2544,12 +2608,12 @@ function runConfronto(skipSpesaCheck){
     const restL = luce.slice(1), restG = gas.slice(1);
     let rest = "";
     if(restL.length){
-      rest += groupHeadHTML("#e65100","💡",`Altre offerte Luce (${restL.length})`);
-      restL.forEach(o=>{ o._winner=false; rest += renderCard(o); });
+      rest += groupHeadHTML("#e65100","💡",`Altre offerte Luce (${restL.length})`) + rkToolHTML();
+      rest += renderRankList(restL, 2);
     }
     if(restG.length){
-      rest += groupHeadHTML("#0277bd","🔥",`Altre offerte Gas (${restG.length})`);
-      restG.forEach(o=>{ o._winner=false; rest += renderCard(o); });
+      rest += groupHeadHTML("#0277bd","🔥",`Altre offerte Gas (${restG.length})`) + rkToolHTML();
+      rest += renderRankList(restG, 2);
     }
     if(rest) body.innerHTML += renderAltreToggle(rest, restL.length+restG.length);
   } else if(luce.length){
@@ -2565,6 +2629,70 @@ function runConfronto(skipSpesaCheck){
   res.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
+/* Esito di un'offerta, come lo legge l'operatore: per le FLAT con spesa annua conta l'anno */
+function esitoOfferta(o){
+  const fa = o.flat && o.flatAnnual && o.flatAnnual.hasSpesa ? o.flatAnnual : null;
+  const annuo = fa ? fa.delta : (o.nMesi ? o.risparmio / o.nMesi * 12 : null);
+  const ok = fa ? fa.delta > 0 : o.risparmio > 0;
+  return { ok, periodo:o.risparmio, annuo, flatAnnua:!!fa };
+}
+const segnoEur = v => (v>0?"+ ":(v<0?"− ":""))+"€ "+moneyG(Math.abs(v));
+const mesiLbl = n => `${n} ${n===1?"mese":"mesi"}`;
+
+/* Riquadro in cima: per ogni servizio dice subito se conviene cambiare e di quanto */
+function renderEsitoTop(luce, gas){
+  const riga = (offers, serv) => {
+    if(!offers.length) return "";
+    const b = offers[0], e = esitoOfferta(b), n = offers.length, nOk = offers.filter(o=>esitoOfferta(o).ok).length;
+    const ico = serv==="gas" ? "🔥" : "💡", S = serv==="gas" ? "Gas" : "Luce";
+    const val = e.flatAnnua ? e.annuo : e.periodo;
+    const verd = e.ok ? `${S}: conviene cambiare` : `${S}: la bolletta attuale costa già meno`;
+    const sub = e.ok
+      ? `con <b>${b.brandLabel} · ${b.nome.replace(/^(PLENITUDE|SORGENIA|FASTWEB|ALPERIA)\s+/i,"")}</b>`
+        + (e.flatAnnua ? ` · sull'anno (offerta a canone)` : ` · sul periodo di ${mesiLbl(b.nMesi)}${e.annuo!=null?`, circa <b>€ ${moneyG(e.annuo)} all'anno</b>`:""}`)
+      : `nessuna delle ${n} offerte fa risparmiare: la più vicina è ${b.brandLabel} · ${b.nome.replace(/^(PLENITUDE|SORGENIA|FASTWEB|ALPERIA)\s+/i,"")}`;
+    return { html:`<div class="et-row ${e.ok?"ok":"ko"}">
+        <span class="et-ico" aria-hidden="true">${ico}</span>
+        <div class="et-mid"><div class="et-verd">${e.ok?"✓ ":"✕ "}${verd}</div><div class="et-sub">${sub}</div><div class="et-sub">${n} offerte confrontate · ${nOk} con risparmio</div></div>
+        <div class="et-val"><strong>${segnoEur(val)}</strong><small>${e.ok?(e.flatAnnua?"risparmio annuo":"risparmio stimato"):(e.flatAnnua?"in più all'anno":"in più sul periodo")}</small></div>
+      </div>`, e, b };
+  };
+  const L = riga(luce,"luce"), G = riga(gas,"gas");
+  let tot = "";
+  if(L && G && L.e.ok && G.e.ok){
+    const per = (L.e.flatAnnua?0:L.e.periodo) + (G.e.flatAnnua?0:G.e.periodo);
+    const ann = (L.e.annuo||0) + (G.e.annuo||0);
+    tot = `<div class="et-tot"><span>Risparmio totale luce + gas</span><div><strong>${segnoEur(ann)} all'anno</strong>${per>0 && !L.e.flatAnnua && !G.e.flatAnnua ? `<em>${segnoEur(per)} sul periodo della bolletta</em>`:""}</div></div>`;
+  }
+  return `<div class="esito-top">
+    <div class="et-tit"><b>Esito del confronto</b><span>stime sui dati della bolletta inserita</span></div>
+    ${L?L.html:""}${G?G.html:""}${tot}
+  </div>`;
+}
+
+/* Riga compatta della classifica: si apre sul dettaglio completo dell'offerta */
+function rkDeltaHTML(o){
+  const e = esitoOfferta(o), v = e.flatAnnua ? e.annuo : e.periodo;
+  return `<strong>${segnoEur(v)}</strong><small>${e.ok?(e.flatAnnua?"risparmio annuo":"risparmio stimato"):(e.flatAnnua?"in più all'anno":"maggior costo")}</small>`;
+}
+function renderRankRow(o, rank){
+  const e = esitoOfferta(o);
+  return `<details class="rk ${e.ok?"ok":"ko"}" id="rk_${o.id}">
+    <summary>
+      <span class="rk-n">${rank}</span>
+      <span class="rk-id"><b>${o.nome}</b>
+        <span class="rk-chips"><span style="background:${o.brandColor};color:#fff">${o.brandLabel}</span><span class="${o.tipoBadge.cls}">${o.tipoBadge.text}</span>${o.validita?`<span class="b-base">${o.validita}</span>`:""}</span>
+      </span>
+      <span class="rk-d" id="rkd_${o.id}">${rkDeltaHTML(o)}</span>
+      <span class="rk-chev">⌄</span>
+    </summary>
+    ${renderCard(o)}
+  </details>`;
+}
+function renderRankList(offers, primoRank){
+  return offers.map((o,i)=>{ o._winner=false; return renderRankRow(o, primoRank+i); }).join("");
+}
+
 function groupHeadHTML(color, icon, label){
   return `<div class="group-head"><span class="ic" style="background:${color}">${icon}</span> ${label}</div>`;
 }
@@ -2575,12 +2703,12 @@ function renderGroupCollassabile(titolo, color, icon, offers){
   html += renderCard(offers[0]);
   const rest = offers.slice(1);
   if(rest.length){
-    let r = "";
-    rest.forEach(o=>{ o._winner=false; r += renderCard(o); });
-    html += renderAltreToggle(r, rest.length, titolo);
+    html += renderAltreToggle(rkToolHTML() + renderRankList(rest, 2), rest.length, titolo);
   }
   return html;
 }
+
+const rkToolHTML = () => `<div class="rk-tool"><span>Ordinate dal maggior risparmio al minore</span><span>tocca un'offerta per il dettaglio</span></div>`;
 
 /* Pulsante cliccabile "Tutte le altre offerte" + contenitore nascosto */
 function renderAltreToggle(restHtml, count, suffix){
@@ -2620,13 +2748,23 @@ function renderCard(o){
     r.sub
       ? `<div class="det-sub">${r.label}</div>`
       : `<div class="det-row${r.tot?' tot':''}"><span>${r.label}</span><span>${r.value}</span></div>`).join("");
-  const ribbon = isWinner ? `<div class="ribbon">★ Vincitore ${o.servizio} — ${o.brandLabel}</div>` : "";
+  const es = esitoOfferta(o);
+  const ribbon = !isWinner ? "" : (es.ok
+    ? `<div class="ribbon">★ Migliore offerta ${o.servizio} — ${o.brandLabel}</div>`
+    : `<div class="ribbon ko">Offerta più vicina ${o.servizio} — nessun risparmio</div>`);
+  const esitoBox = `<div class="esito-box ${ok?'ok':'ko'}">
+      <div><div class="eb-lbl">${ok?"✓ Risparmio stimato":"✕ Maggior costo stimato"}${o.flat?" sul periodo":""}</div>
+      <div class="eb-sub">${ok
+        ? (o.flat ? `bolletta del periodo (${mesiLbl(o.nMesi)}) contro il canone dell'offerta` : `sul periodo di ${mesiLbl(o.nMesi)} · circa € ${moneyG(Math.abs(es.annuo||0))} all'anno`)
+        : `l'offerta costa più della bolletta attuale` + (o.flat?"":` · circa € ${moneyG(Math.abs(es.annuo||0))} in più all'anno`)}</div></div>
+      <div class="eb-val">${segnoEur(o.risparmio)}</div>
+    </div>`;
   const margBadge = o.marginalita ? `<span class="badge b-fix">★ Alta marginalità</span>` : "";
   const bollinoBadge = (o.brandId==="alperia")
     ? (()=>{ const b=bollinoInfo(o.bollino); return `<span class="badge ${b.cls}">${b.emoji} Bollino: ${b.label}</span>`; })()
     : "";
   return `
-    <div class="offer ${isWinner?'winner':''}" id="card_${o.id}" style="border-left-color:${o.brandColor}">
+    <div class="offer ${isWinner?(es.ok?'winner':'winner no-risp'):''}" id="card_${o.id}" style="border-left-color:${o.brandColor}">
       ${ribbon}
       <div class="offer-top">
         <h3>${o.nome}</h3>
@@ -2653,7 +2791,7 @@ function renderCard(o){
         <div class="pbox p-new"><div class="p-lbl">Con ${o.brandLabel}<small>offerta proposta</small></div><div class="p-imp">€ ${money(o.costoOfferta)}</div></div>
       </div>
 
-      <div class="saving ${ok?'ok':'ko'}">${o.flat ? (ok?"✓ Risparmio sul periodo: € "+imp:"⚠ Sul periodo l'offerta è più alta di € "+imp) : (ok?"✓ Risparmio stimato: € "+imp:"⚠ Maggior costo stimato: € "+imp)}</div>
+      ${esitoBox}
       ${o.flat ? renderFlatAnnual(o) : ""}
 
       <details class="det">
